@@ -217,8 +217,8 @@ void dac_sort_subarray(int* arr, int begin, int end, int th){
         }
         if(i<end){ vec_subarray_count[offset+j] = end-i; }
         else if(count!=0){ vec_subarray_count[offset+j] = count; }
-
-                if(debug_flag){
+        
+        if(debug_flag){
             cout<<"count: ";
             for(int j=0; j<subarray_size; j++){
                 cout<<vec_subarray_count[offset+j]<<" ";
@@ -239,7 +239,7 @@ void transpose(int bucket_num, int bucket_size){
     vector<int> _vec_bucket_T(bucket_num*bucket_size);
     swap(vec_bucket_T, _vec_bucket_T);
 
-    for(int i=0; i<bucket_num; i++){
+    cilk_for(int i=0; i<bucket_num; i++){
         int offset = i * bucket_size;
         for(int j=0; j<bucket_size; j++){
             vec_bucket_T[offset+j] = vec_subarray_count[j*subarray_size+i];

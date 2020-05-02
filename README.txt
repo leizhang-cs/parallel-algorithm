@@ -1,5 +1,5 @@
-To run the program, make sure cilk library is installed.
-```Bash
+With cilk library installed:
+```bash
 make
 ./ssort [n_elements]
 ```

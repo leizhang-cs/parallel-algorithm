@@ -1,5 +1,1 @@
-With cilk library installed:
-```bash
-make
-./ssort [n_elements]
-```
+parallel samplesort

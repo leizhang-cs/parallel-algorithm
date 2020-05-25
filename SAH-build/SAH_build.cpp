@@ -28,7 +28,7 @@ void SAH_Build::Build(std::vector<Entry>& entries){
 void SAH_Build::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end)
 {
     int n = end - begin;
-    if(n<threshold){
+    if(n<=threshold){
         curr = new Node();
         Box b; b.Make_Empty();
         for(int i=0; i<n; i++){

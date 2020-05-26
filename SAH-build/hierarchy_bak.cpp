@@ -81,3 +81,26 @@ void Hierarchy::Intersection_Candidates(const Ray& ray, std::vector<int>& candid
         }
     }
 }
+
+void Hierarchy::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const
+{
+    if(!tree.size()) return;
+    int i, k, size = tree.size(), size_en = entries.size();
+    std::queue<int> q;
+    if(tree[0].Intersection(ray)) q.push(0);
+    while(!q.empty()){
+        i = q.front();
+        q.pop();
+        k = 2 * i + 1;
+        if(k<size){
+            if(tree[k].Intersection(ray))
+                q.push(k);
+            k++;
+            if(k<size && tree[k].Intersection(ray))
+                q.push(k);
+        }
+        else{
+            candidates.push_back(&entries[i-size_en+1]);
+        }
+    }
+}

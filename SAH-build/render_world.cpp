@@ -29,26 +29,25 @@ Hit Render_World::Closest_Intersection(const Ray& ray)
 {
     Hit hit = {NULL, 0, 0}, temp;
 
-    if(incremental_build){
-        std::vector<int> candidates;
-        hierarchy.Intersection_Candidates(ray, candidates);
-        //if(debug_pixel) std::cout<<"entries.size: "<<hierarchy.entries.size()<<std::endl;
-        //if(debug_pixel) std::cout<<"candidates.size: "<<candidates.size()<<std::endl;
-        for(auto i: candidates){
-            temp = hierarchy.entries[i].obj->Intersection(ray, hierarchy.entries[i].part);
-            if(temp.dist>=small_t && (!hit.object || temp.dist<hit.dist)){
-                hit = temp;
-            }
+    
+    std::vector<const Entry*> candidates;
+    hierarchy->Intersection_Candidates(ray, candidates);
+    //if(debug_pixel) std::cout<<"candidates.size: "<<candidates.size()<<std::endl;
+    for(auto en: candidates){
+        temp = en->obj->Intersection(ray, en->part);
+        if(temp.dist>=small_t && (!hit.object || temp.dist<hit.dist)){
+            hit = temp;
         }
     }
+    
     // if(debug_pixel){
-    //     std::cout<<"htree box:"<<hierarchy.tree[0].lo<<" "<<hierarchy.tree[0].hi<<std::endl;
+    //     std::cout<<"htree box:"<<hierarchy->tree[0].lo<<" "<<hierarchy->tree[0].hi<<std::endl;
     //     std::cout<<"root box:"<<sah_bin_build->root->box.lo<<" "<<sah_bin_build->root->box.hi<<std::endl;
-    //     if(hierarchy.tree[0].Intersection(ray)){ std::cout<<"h"<<std::endl; }
+    //     if(hierarchy->tree[0].Intersection(ray)){ std::cout<<"h"<<std::endl; }
     //     if(sah_bin_build->root->box.Intersection(ray)){ std::cout<<"sah"<<std::endl; }
     // }
-    if(sah_bin){
-        std::vector<Entry*> candidates;
+    /*if(sah_bin){
+        std::vector<const Entry*> candidates;
         sah_bin_build->Intersection_Candidates(ray, candidates);
         if(debug_pixel) std::cout<<candidates.size()<<std::endl;
         for(auto en: candidates){
@@ -59,7 +58,7 @@ Hit Render_World::Closest_Intersection(const Ray& ray)
         }
     }
     if(sah_sweep){
-        std::vector<Entry*> candidates;
+        std::vector<const Entry*> candidates;
         sah_build->Intersection_Candidates(ray, candidates);
         if(debug_pixel) std::cout<<candidates.size()<<std::endl;
         for(auto en: candidates){
@@ -68,9 +67,9 @@ Hit Render_World::Closest_Intersection(const Ray& ray)
                 hit = temp;
             }
         }
-    }
+    }*/
 
-    for(auto en: hierarchy.entries_inf){
+    for(auto en: hierarchy->entries_inf){
         temp = en.obj->Intersection(ray, en.part);
         if(temp.dist>=small_t && (!hit.object || temp.dist<hit.dist)){
             hit = temp;
@@ -90,7 +89,7 @@ void Render_World::Render_Pixel(const ivec2& pixel_index)
         camera.Set_Ray(pixel_index, ray, anti_aliasing_samples);
         for(auto r: ray){
             color += Cast_Ray(r, 1);
-            // if(hierarchy.tree.empty()||!hierarchy.tree[0].Intersection(r)){
+            // if(hierarchy->tree.empty()||!hierarchy->tree[0].Intersection(r)){
             //     camera.Set_Pixel(pixel_index,Pixel_Color(color));
             //     return;
             // }
@@ -178,29 +177,25 @@ void Render_World::Initialize_Hierarchy()
     for(auto obj: objects){
         for(int i=0; i<obj->number_parts; i++){
             if(std::isinf(obj->Bounding_Box(i).hi[0])){
-                hierarchy.entries_inf.push_back({obj, i, obj->Bounding_Box(i)});
+                hierarchy->entries_inf.push_back({obj, i, obj->Bounding_Box(i)});
             }
             else{
-                hierarchy.entries.push_back({obj, i, obj->Bounding_Box(i)});
-                if(sah_bin) sah_bin_build->entries.push_back({obj, i, obj->Bounding_Box(i)});
-                if(sah_sweep) sah_build->entries.push_back({obj, i, obj->Bounding_Box(i)});
+                hierarchy->entries.push_back({obj, i, obj->Bounding_Box(i)});
                 if(obj->material_shader->rf_able){
-                    hierarchy.entries_rfable.push_back({obj, i, obj->Bounding_Box(i)});
+                    hierarchy->entries_rfable.push_back({obj, i, obj->Bounding_Box(i)});
                 }
             }
         }
     }
-    // Fill in hierarchy.entries; there should be one entry for
+    // Fill in hierarchy->entries; there should be one entry for
     // each part of each object.
     double start = clock();
-    if(incremental_build) hierarchy.Build(hierarchy.entries);
-    if(sah_bin) sah_bin_build->Build(sah_bin_build->entries);
-    if(sah_sweep) sah_build->Build(sah_build->entries);
+    hierarchy->Build(hierarchy->entries);
     double end = clock();
     std::cout<<"build time: "<<(end-start)/CLOCKS_PER_SEC<<std::endl;
     
-    //std::cout<<hierarchy.entries.size()<<" "<<hierarchy.tree.size()<<std::endl;
-    //std::cout<<"rfable_size:"<<hierarchy.entries_rfable.size()<<std::endl;
+    //std::cout<<hierarchy->entries.size()<<" "<<hierarchy->tree.size()<<std::endl;
+    //std::cout<<"rfable_size:"<<hierarchy->entries_rfable.size()<<std::endl;
     
     if(!disable_forward){
         double start = clock();

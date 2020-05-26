@@ -2,27 +2,29 @@
 #define __SAH_BIN_H__
 
 #include "object.h"
+#include "hierarchy.h"
 
 struct Entry;
 
-// TODO new node
+// BVH treeNode
 struct Node;
 
-class SAH_BIN{
+class SAH_BIN: public Hierarchy
+{
 public:
-    SAH_BIN():threshold(0),buckets_num(0){}
-    // SAH_BIN(threshold, buckets_num) eg. 2, 16
+    SAH_BIN():buckets_num(0){}
+    // threshold of treeNode, buckets number for partition
     SAH_BIN(int threshold_input, int buckets_num_input)
-        :threshold(threshold_input),buckets_num(buckets_num_input)
+        :Hierarchy(threshold_input),buckets_num(buckets_num_input)
     {}
 
-    const int threshold; // for leaf
     const int buckets_num;
-    std::vector<Entry> entries; // including primitives, import from hierarchy
+    //Hierarchy::entries;
     
-    void Build(std::vector<Entry>& entries);
+    virtual void Build(std::vector<Entry>& entries) override;
     // candidates: pointer of entries
-    void Intersection_Candidates(const Ray& ray, std::vector<Entry*>& candidates) const;
+    virtual void Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates)
+        const override;
 
 private:
     Node* root; // root of BVH

@@ -4,8 +4,10 @@
 #include <vector>
 #include "camera.h"
 #include "hierarchy.h"
-#include "SAH_build.h"
+#include "incremental_build.h"
+#include "SAH_sweep.h"
 #include "SAH_BIN.h"
+
 class Light;
 class Shader;
 class Ray;
@@ -30,14 +32,9 @@ public:
     bool disable_forward;
     int forward_casting_times;
     // TODO enum
-    bool incremental_build = false;
-    bool sah_sweep = false;
-    bool sah_bin = false;
 
 
-    Hierarchy hierarchy; // incremental
-    SAH_Build* sah_build; // SAH sweep
-    SAH_BIN* sah_bin_build; // SAH BIN
+    Hierarchy* hierarchy; // incremental
 
     Render_World();
     ~Render_World();

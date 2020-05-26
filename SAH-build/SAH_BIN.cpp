@@ -5,13 +5,6 @@
 #include "inline_func.cpp"
 
 
-struct Entry
-{
-    Object* obj;
-    int part;
-    Box box;
-};
-
 struct Node{
     Box box;
     Node* lChild;
@@ -117,7 +110,6 @@ void SAH_BIN::bucketing(int dimension, double largest_dist, double lo_dist, std:
         t += interval;
     }
 
-    // debug
     // allocate entries into buckets
     int i=begin;
     for(size_t j=0; j<partitions.size();){
@@ -173,8 +165,8 @@ int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vecto
 
 
 // TODO: base class
-// candidates: pointer of entries
-void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<Entry*>& candidates) const
+// candidates: pointer of entries. Level order traversal
+void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const
 {
     //std::cout<<"candidata()"<<std::endl;
     if(!root) return;

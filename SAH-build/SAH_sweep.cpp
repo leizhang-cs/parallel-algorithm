@@ -1,15 +1,9 @@
-#include "SAH_build.h"
+#include "SAH_sweep.h"
 #include <algorithm>
 #include <limits>
 #include <queue>
 #include "inline_func.cpp"
 
-struct Entry
-{
-    Object* obj;
-    int part;
-    Box box;
-};
 
 struct Node{
     Box box;
@@ -22,11 +16,11 @@ struct Node{
 };
 
 
-void SAH_Build::Build(std::vector<Entry>& entries){
+void SAH_Sweep::Build(std::vector<Entry>& entries){
     Sweep_Build(root, entries, 0, entries.size());
 }
 
-void SAH_Build::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end)
+void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end)
 {
     int n = end - begin;
     if(n<=threshold){
@@ -52,7 +46,7 @@ void SAH_Build::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
                 return c1[i]<c2[i];
             });
             // search and update bestCut, current node box
-            if(updateBestCut(global_index, global_min, curr->box, entries, 
+            if(updateBestPartition(global_index, global_min, curr->box, entries, 
                 begin, end)){
                 axis = i;
             }
@@ -72,7 +66,7 @@ void SAH_Build::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
     }
 }
 
-bool SAH_Build::updateBestCut(int& global_index, double& global_min, Box& currBox, 
+bool SAH_Sweep::updateBestPartition(int& global_index, double& global_min, Box& currBox, 
         std::vector<Entry>& entries, int begin, int end){
     bool update = false;
     int n = end - begin;
@@ -102,17 +96,11 @@ bool SAH_Build::updateBestCut(int& global_index, double& global_min, Box& currBo
 }
 
 
-// candidates: pointer of entries
-void SAH_Build::Intersection_Candidates(const Ray& ray, std::vector<Entry*>& candidates) const
+// candidates: pointer of entries. Level order traversal
+void SAH_Sweep::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const
 {
     //std::cout<<"candidata()"<<std::endl;
     if(!root) return;
-
-    if(debug_pixel){
-        std::cout<<"root box:"<<root->box.lo<<" "<<root->box.hi<<std::endl;
-        if(root->box.Intersection(ray)){ std::cout<<"sah"<<std::endl; }
-        else{ std::cout<<"sah not intersect"<<std::endl; }
-    }
 
     std::queue<Node*> q;
     if(root->box.Intersection(ray)){

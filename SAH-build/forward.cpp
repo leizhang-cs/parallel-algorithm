@@ -6,7 +6,7 @@
 
 void Forward::Initialize_GI(){
     // entries_able
-    std::vector<Entry>& GI_entries = world.hierarchy.entries;
+    std::vector<Entry>& GI_entries = world.hierarchy->entries;
     if(GI_entries.empty()) return;
 
     Box interest_box = GI_entries[0].box;

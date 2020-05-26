@@ -3,6 +3,35 @@
 
 #include "object.h"
 
+
+struct Entry
+{
+    Object* obj;
+    int part;
+    Box box;
+};
+
+struct Node;
+
+class Hierarchy
+{
+public:
+    Hierarchy():threshold(0){}
+    Hierarchy(int threshold_input):threshold(threshold_input){}
+
+    // Numbers of primitives per TreeNode
+    const int threshold;
+    // List of primitives (or parts of primitives) that can be intersected
+    std::vector<Entry> entries;
+    std::vector<Entry> entries_rfable;
+    std::vector<Entry> entries_inf;
+
+    virtual void Build(std::vector<Entry>& entries)=0;
+    // Return a list of candidates whose bounding boxes intersect the ray.
+    virtual void Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const=0;
+};
+#endif
+
 /*
   A hierarchy is a binary tree.  We represent the hierarchy as a complete
   binary tree.  This allows us to represent the tree unambiguously as an
@@ -23,37 +52,3 @@
   Note that if entries has n entries, then tree will have 2*n-1 entries.
   The last n elements of tree correspond to the elements of entries (in order).
 */
-
-struct Entry
-{
-    Object* obj;
-    int part;
-    Box box;
-};
-
-struct Node;
-
-class Hierarchy
-{
-public:
-    // Numbers of primitives per TreeNode
-    int threshold;
-    // List of primitives (or parts of primitives) that can be intersected
-    std::vector<Entry> entries;
-    std::vector<Entry> entries_rfable;
-    std::vector<Entry> entries_inf;
-
-    void Build(std::vector<Entry>& entries);
-    // Return a list of candidates whose bounding boxes intersect the ray.
-    void Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) const;
-
-private:
-    // Flattened hierarchy
-    std::vector<Box> tree;
-
-    // Reorder the entries vector so that adjacent entries tend to be nearby.
-    void Reorder_Entries(std::vector<Entry>& entries);
-    // Populate tree from entries.
-    void Build_Tree(std::vector<Entry>& entries);
-};
-#endif

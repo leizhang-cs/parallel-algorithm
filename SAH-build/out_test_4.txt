@@ -20,4 +20,4 @@ enable_shadows 1
 camera 0.02 0.01 1 0 0 0 0 1 0 70
 #incremental 1
 #sah_sweep 1
-sah_bin 3 16
+sah_bin 4 16

@@ -42,7 +42,7 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         std::vector<Box> buckets(buckets_num);
         // map: buckets index -> entries index
         std::vector<int> BucketToEntry(buckets_num);
-        for(auto& b: buckets) b.Make_Empty();
+        cilk_for(int i=0; i<buckets.size(); i++) buckets[i].Make_Empty();
 
         // TODO bucket sorting
         // compare two Entry along a-dimension
@@ -63,8 +63,10 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         }
         //std::cout<<"partition:"<<begin<<" "<<en_index<<" "<<end<<std::endl;
         
+        cilk_spawn
         BIN_Build(curr->lChild, entries, begin, en_index);
         BIN_Build(curr->rChild, entries, en_index, end);
+        cilk_sync;
     }
 }
 
@@ -112,18 +114,16 @@ void SAH_BIN::bucketing(int dimension, double largest_dist, double lo_dist, std:
         t += interval;
     }
 
+    // TODO prallel bucket sort
     // allocate entries into buckets
     int i=begin;
     for(size_t j=0; j<partitions.size();){
         double position = entries[i].box.lo[dimension]+entries[i].box.hi[dimension];
-        
         if(position<=partitions[j]){
             buckets[j] = buckets[j].Union(entries[i].box);
             i++;
         }
-        else{
-            BucketToEntry[++j] = i;
-        }
+        else BucketToEntry[++j] = i;
     }
     BucketToEntry[partitions.size()] = i;
     // entries larger than the last partition
@@ -144,12 +144,9 @@ int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vecto
     sweepR.back() = buckets.back();
     sweepL.front() = buckets.front();
 
-    // TODO merge
-    for(int i=n-2; i>=0; i--){
+    cilk_for(int i=n-2; i>=0; i--){
         sweepR[i] = buckets[i].Union(sweepR[i+1]);
-    }
-    for(int i=1; i<n; i++){
-        sweepL[i] = buckets[i].Union(sweepL[i-1]);
+        sweepL[n-i-1] = buckets[n-i-1].Union(sweepL[n-i-2]);
     }
 
     double min_cost = std::numeric_limits<double>::infinity();
@@ -185,24 +182,23 @@ void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>&
     std::queue<Node*> q;
     if(root->box.Intersection(ray)){
         q.push(root);
-        if(debug_pixel) std::cout<<"enter loop"<<std::endl;
     }
     
-
     while(!q.empty()){
-        Node* temp = q.front(); q.pop();
-        if(debug_pixel) std::cout<<"box:"<<temp->box.Surface_Area()<<std::endl;
-        if(!temp->entry_list.empty()){
-            //std::cout<<"intersect: "<<std::endl;
-            for(auto en: temp->entry_list){
-                candidates.push_back(en);
+        // TODO test
+        cilk_for(int k=q.size(); k>0; k--){
+            Node* temp = q.front(); q.pop();
+            if(!temp->entry_list.empty()){
+                for(auto en: temp->entry_list){
+                    candidates.push_back(en);
+                }
             }
-        }
-        if(temp->lChild && temp->lChild->box.Intersection(ray)){
-            q.push(temp->lChild);
-        }
-        if(temp->rChild && temp->rChild->box.Intersection(ray)){
-            q.push(temp->rChild);
+            if(temp->lChild && temp->lChild->box.Intersection(ray)){
+                q.push(temp->lChild);
+            }
+            if(temp->rChild && temp->rChild->box.Intersection(ray)){
+                q.push(temp->rChild);
+            }
         }
     }
 }

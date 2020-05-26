@@ -144,12 +144,9 @@ int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vecto
     sweepR.back() = buckets.back();
     sweepL.front() = buckets.front();
 
-    // TODO merge
     for(int i=n-2; i>=0; i--){
         sweepR[i] = buckets[i].Union(sweepR[i+1]);
-    }
-    for(int i=1; i<n; i++){
-        sweepL[i] = buckets[i].Union(sweepL[i-1]);
+        sweepL[n-i-1] = buckets[n-i-1].Union(sweepL[n-i-2]);
     }
 
     double min_cost = std::numeric_limits<double>::infinity();
@@ -185,24 +182,22 @@ void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>&
     std::queue<Node*> q;
     if(root->box.Intersection(ray)){
         q.push(root);
-        if(debug_pixel) std::cout<<"enter loop"<<std::endl;
     }
     
-
     while(!q.empty()){
-        Node* temp = q.front(); q.pop();
-        if(debug_pixel) std::cout<<"box:"<<temp->box.Surface_Area()<<std::endl;
-        if(!temp->entry_list.empty()){
-            //std::cout<<"intersect: "<<std::endl;
-            for(auto en: temp->entry_list){
-                candidates.push_back(en);
+        for(int k=q.size(); k>0; k--){
+            Node* temp = q.front(); q.pop();
+            if(!temp->entry_list.empty()){
+                for(auto en: temp->entry_list){
+                    candidates.push_back(en);
+                }
             }
-        }
-        if(temp->lChild && temp->lChild->box.Intersection(ray)){
-            q.push(temp->lChild);
-        }
-        if(temp->rChild && temp->rChild->box.Intersection(ray)){
-            q.push(temp->rChild);
+            if(temp->lChild && temp->lChild->box.Intersection(ray)){
+                q.push(temp->lChild);
+            }
+            if(temp->rChild && temp->rChild->box.Intersection(ray)){
+                q.push(temp->rChild);
+            }
         }
     }
 }

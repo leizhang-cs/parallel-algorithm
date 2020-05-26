@@ -36,6 +36,7 @@ private:
         std::vector<int>& BucketToEntry, const std::vector<Entry>& entries, int begin, int end);
     int findBestPartition(const std::vector<Box>& buckets, const std::vector<int>& BucketToEntry, 
         Box& currBox);
+    void Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end);
 };
 
 

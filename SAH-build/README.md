@@ -1,6 +1,6 @@
 Implementation of 
-  * Item SAH sweep build
-  * Item SAH-based binned build
+  * SAH sweep build
+  * SAH-based binned build
 
 With scons installed:
 ```

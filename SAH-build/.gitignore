@@ -1,3 +1,4 @@
 # ignore .o, .png files
 *.o
 *.png
+*.dblite

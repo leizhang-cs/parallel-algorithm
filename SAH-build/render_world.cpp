@@ -6,7 +6,7 @@
 #include "shader.h"
 #include "forward.h"
 #include "inline_func.cpp"
-#include <time.h>
+#include "get_time.h"
 
 extern bool disable_hierarchy;
 
@@ -39,35 +39,6 @@ Hit Render_World::Closest_Intersection(const Ray& ray)
             hit = temp;
         }
     }
-    
-    // if(debug_pixel){
-    //     std::cout<<"htree box:"<<hierarchy->tree[0].lo<<" "<<hierarchy->tree[0].hi<<std::endl;
-    //     std::cout<<"root box:"<<sah_bin_build->root->box.lo<<" "<<sah_bin_build->root->box.hi<<std::endl;
-    //     if(hierarchy->tree[0].Intersection(ray)){ std::cout<<"h"<<std::endl; }
-    //     if(sah_bin_build->root->box.Intersection(ray)){ std::cout<<"sah"<<std::endl; }
-    // }
-    /*if(sah_bin){
-        std::vector<const Entry*> candidates;
-        sah_bin_build->Intersection_Candidates(ray, candidates);
-        if(debug_pixel) std::cout<<candidates.size()<<std::endl;
-        for(auto en: candidates){
-            temp = en->obj->Intersection(ray, en->part);
-            if(temp.dist>=small_t && (!hit.object || temp.dist<hit.dist)){
-                hit = temp;
-            }
-        }
-    }
-    if(sah_sweep){
-        std::vector<const Entry*> candidates;
-        sah_build->Intersection_Candidates(ray, candidates);
-        if(debug_pixel) std::cout<<candidates.size()<<std::endl;
-        for(auto en: candidates){
-            temp = en->obj->Intersection(ray, en->part);
-            if(temp.dist>=small_t && (!hit.object || temp.dist<hit.dist)){
-                hit = temp;
-            }
-        }
-    }*/
 
     for(auto en: hierarchy->entries_inf){
         temp = en.obj->Intersection(ray, en.part);
@@ -108,13 +79,13 @@ void Render_World::Render()
     if(!disable_hierarchy)
         Initialize_Hierarchy();
 
-    double start = clock();
+    timer t; t.start();
     for(int j=0;j<camera.number_pixels[1];j++)
         for(int i=0;i<camera.number_pixels[0];i++)
             Render_Pixel(ivec2(i,j));
 
-    double end = clock();
-    std::cout<<"render time: "<<(end-start)/CLOCKS_PER_SEC<<std::endl;
+    t.stop();
+    std::cout<<"render time: "<<t.get_total()<<std::endl;
 }
 
 // cast ray and return the color of the closest intersected surface point,
@@ -189,19 +160,19 @@ void Render_World::Initialize_Hierarchy()
     }
     // Fill in hierarchy->entries; there should be one entry for
     // each part of each object.
-    double start = clock();
+    timer t; t.start();
     hierarchy->Build(hierarchy->entries);
-    double end = clock();
-    std::cout<<"build time: "<<(end-start)/CLOCKS_PER_SEC<<std::endl;
+    t.stop();
+    std::cout<<"build time: "<<t.get_total()<<std::endl;
     
     //std::cout<<hierarchy->entries.size()<<" "<<hierarchy->tree.size()<<std::endl;
     //std::cout<<"rfable_size:"<<hierarchy->entries_rfable.size()<<std::endl;
     
     if(!disable_forward){
-        double start = clock();
+        timer t; t.start();
         Forward forward_phase(*this);
         forward_phase.Initialize_GI();
-        double end = clock();
-        std::cout<<"illuminate time: "<<(end-start)/CLOCKS_PER_SEC<<std::endl;
+        t.stop();
+        std::cout<<"illuminate time: "<<t.get_total()<<std::endl;
     }
 }

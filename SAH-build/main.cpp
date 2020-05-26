@@ -57,8 +57,8 @@ void Usage(const char* exec)
 }
 
 void Parse(Render_World& world,int& width,int& height,const char* test_file);
-void Dump_png(Pixel* data,int width,int height,const char* filename);
-void Read_png(Pixel*& data,int& width,int& height,const char* filename);
+void Dump_png(Pixel* data,int width,int height,const char* filename){}
+void Read_png(Pixel*& data,int& width,int& height,const char* filename){}
 
 int main(int argc, char** argv)
 {

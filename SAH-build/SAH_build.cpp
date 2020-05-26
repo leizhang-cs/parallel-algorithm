@@ -21,15 +21,6 @@ struct Node{
     Node(int n):lChild(nullptr),rChild(nullptr),entry_list(n){}
 };
 
-// compare two Entry along a-axis
-struct compare{
-    compare(int a):axis(a){}
-    int axis;
-    bool operator()(Entry e1, Entry e2){
-        vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
-        return c1[axis]<c2[axis];
-    }
-};
 
 void SAH_Build::Build(std::vector<Entry>& entries){
     Sweep_Build(root, entries, 0, entries.size());
@@ -56,8 +47,10 @@ void SAH_Build::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
         for(int i=0; i<3; i++){
             //std::cout<<"axis:"<<i<<std::endl;
             // compare along i-axis
-            compare comp(i);
-            std::sort(entries.begin()+begin, entries.begin()+end, comp);
+            std::sort(entries.begin()+begin, entries.begin()+end, [i](auto& e1, auto& e2){
+                vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
+                return c1[i]<c2[i];
+            });
             // search and update bestCut, current node box
             if(updateBestCut(global_index, global_min, curr->box, entries, 
                 begin, end)){
@@ -66,8 +59,10 @@ void SAH_Build::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
         }
         if(axis==-1){ std::cout<<"fail update"<<std::endl; return; }
         else if(axis!=2){
-            compare comp(axis);
-            std::sort(entries.begin()+begin, entries.begin()+end, comp);
+            std::sort(entries.begin()+begin, entries.begin()+end, [axis](auto& e1, auto& e2){
+                vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
+                return c1[axis]<c2[axis];
+            });
         }
 
         //std::cout<<"split:"<<global_index<<std::endl;

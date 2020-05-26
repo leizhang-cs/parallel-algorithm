@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "hierarchy.h"
 #include "SAH_build.h"
+#include "SAH_BIN.h"
 class Light;
 class Shader;
 class Ray;
@@ -28,12 +29,15 @@ public:
     int anti_aliasing_samples;
     bool disable_forward;
     int forward_casting_times;
+    // TODO enum
     bool incremental_build = false;
     bool sah_sweep = false;
+    bool sah_bin = false;
 
 
     Hierarchy hierarchy; // incremental
-    SAH_Build sah_build; // SAH
+    SAH_Build* sah_build; // SAH sweep
+    SAH_BIN* sah_bin_build; // SAH BIN
 
     Render_World();
     ~Render_World();

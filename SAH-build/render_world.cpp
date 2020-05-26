@@ -43,13 +43,24 @@ Hit Render_World::Closest_Intersection(const Ray& ray)
     }
     // if(debug_pixel){
     //     std::cout<<"htree box:"<<hierarchy.tree[0].lo<<" "<<hierarchy.tree[0].hi<<std::endl;
-    //     std::cout<<"root box:"<<sah_build.root->box.lo<<" "<<sah_build.root->box.hi<<std::endl;
+    //     std::cout<<"root box:"<<sah_bin_build->root->box.lo<<" "<<sah_bin_build->root->box.hi<<std::endl;
     //     if(hierarchy.tree[0].Intersection(ray)){ std::cout<<"h"<<std::endl; }
-    //     if(sah_build.root->box.Intersection(ray)){ std::cout<<"sah"<<std::endl; }
+    //     if(sah_bin_build->root->box.Intersection(ray)){ std::cout<<"sah"<<std::endl; }
     // }
+    if(sah_bin){
+        std::vector<Entry*> candidates;
+        sah_bin_build->Intersection_Candidates(ray, candidates);
+        if(debug_pixel) std::cout<<candidates.size()<<std::endl;
+        for(auto en: candidates){
+            temp = en->obj->Intersection(ray, en->part);
+            if(temp.dist>=small_t && (!hit.object || temp.dist<hit.dist)){
+                hit = temp;
+            }
+        }
+    }
     if(sah_sweep){
         std::vector<Entry*> candidates;
-        sah_build.Intersection_Candidates(ray, candidates);
+        sah_build->Intersection_Candidates(ray, candidates);
         if(debug_pixel) std::cout<<candidates.size()<<std::endl;
         for(auto en: candidates){
             temp = en->obj->Intersection(ray, en->part);
@@ -171,7 +182,8 @@ void Render_World::Initialize_Hierarchy()
             }
             else{
                 hierarchy.entries.push_back({obj, i, obj->Bounding_Box(i)});
-                sah_build.entries.push_back({obj, i, obj->Bounding_Box(i)});
+                if(sah_bin) sah_bin_build->entries.push_back({obj, i, obj->Bounding_Box(i)});
+                if(sah_sweep) sah_build->entries.push_back({obj, i, obj->Bounding_Box(i)});
                 if(obj->material_shader->rf_able){
                     hierarchy.entries_rfable.push_back({obj, i, obj->Bounding_Box(i)});
                 }
@@ -182,7 +194,8 @@ void Render_World::Initialize_Hierarchy()
     // each part of each object.
     double start = clock();
     if(incremental_build) hierarchy.Build(hierarchy.entries);
-    if(sah_sweep) sah_build.Build(sah_build.entries);
+    if(sah_bin) sah_bin_build->Build(sah_bin_build->entries);
+    if(sah_sweep) sah_build->Build(sah_build->entries);
     double end = clock();
     std::cout<<"build time: "<<(end-start)/CLOCKS_PER_SEC<<std::endl;
     

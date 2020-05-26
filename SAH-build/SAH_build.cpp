@@ -11,6 +11,16 @@ struct Entry
     Box box;
 };
 
+struct Node{
+    Box box;
+    Node* lChild;
+    Node* rChild;
+    std::vector<Entry*> entry_list;
+    
+    Node():lChild(nullptr),rChild(nullptr){}
+    Node(int n):lChild(nullptr),rChild(nullptr),entry_list(n){}
+};
+
 // compare two Entry along a-axis
 struct compare{
     compare(int a):axis(a){}
@@ -29,11 +39,11 @@ void SAH_Build::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
 {
     int n = end - begin;
     if(n<=threshold){
-        curr = new Node();
+        curr = new Node(n);
         Box b; b.Make_Empty();
         for(int i=0; i<n; i++){
             b = b.Union(entries[begin+i].box);
-            curr->entry_list.push_back(&entries[begin+i]);
+            curr->entry_list[i] = &entries[begin+i];
         }
         curr->box = b;
     }
@@ -100,8 +110,7 @@ bool SAH_Build::updateBestCut(int& global_index, double& global_min, Box& currBo
 // candidates: pointer of entries
 void SAH_Build::Intersection_Candidates(const Ray& ray, std::vector<Entry*>& candidates) const
 {
-    //std::cout<<"in: "<<std::endl;
-    //std::cout<<"candi"<<std::endl;
+    //std::cout<<"candidata()"<<std::endl;
     if(!root) return;
 
     if(debug_pixel){
@@ -116,7 +125,6 @@ void SAH_Build::Intersection_Candidates(const Ray& ray, std::vector<Entry*>& can
         if(debug_pixel) std::cout<<"enter loop"<<std::endl;
     }
     
-
     while(!q.empty()){
         Node* temp = q.front(); q.pop();
         if(debug_pixel) std::cout<<"box:"<<temp->box.Surface_Area()<<std::endl;

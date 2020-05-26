@@ -6,22 +6,14 @@
 struct Entry;
 
 // TODO new node
-struct Node{
-    Box box;
-    Node* lChild;
-    Node* rChild;
-    std::vector<Entry*> entry_list;
-    
-    Node():lChild(nullptr),rChild(nullptr){}
-    Node(int th):lChild(nullptr),rChild(nullptr),entry_list(th){}
-};
+struct Node;
 
 class SAH_BIN{
 public:
     SAH_BIN():threshold(0),buckets_num(0){}
     // SAH_BIN(threshold, buckets_num) eg. 2, 16
     SAH_BIN(int threshold_input, int buckets_num_input)
-        :threshold(threshold_input),buckets_num(buckets_num_input),centers(entries.size())
+        :threshold(threshold_input),buckets_num(buckets_num_input)
     {}
 
     const int threshold; // for leaf
@@ -34,14 +26,12 @@ public:
 
 private:
     Node* root; // root of BVH
-    std::vector<vec3> centers; // 2*center for entries.box
 
-    
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
     void findLongestDim(int& dimension, double& largest_dist, double& lo_dist, 
-        const std::vector<vec3>& centers);
+        const std::vector<Entry>& entries, int begin, int end);
     void bucketing(int dimension, double largest_dist, double lo_dist, std::vector<Box>& buckets, 
-        std::vector<int>& BucketToEntry);
+        std::vector<int>& BucketToEntry, const std::vector<Entry>& entries, int begin, int end);
     int findBestPartition(const std::vector<Box>& buckets, const std::vector<int>& BucketToEntry, 
         Box& currBox);
 };

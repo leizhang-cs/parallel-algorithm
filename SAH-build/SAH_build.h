@@ -5,14 +5,7 @@
 
 struct Entry;
 
-struct Node{
-    Box box;
-    std::vector<Entry*> entry_list;
-    Node* lChild;
-    Node* rChild;
-    
-    Node():lChild(nullptr), rChild(nullptr){}
-};
+struct Node;
 
 class SAH_Build{
 public:

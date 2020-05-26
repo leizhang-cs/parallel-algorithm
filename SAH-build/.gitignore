@@ -1,2 +1,3 @@
-# ignore .o files
+# ignore .o, .png files
 *.o
+*.png

@@ -11,6 +11,9 @@
 #include "forward.h"
 #include "render_world.h"
 #include "sphere.h"
+#include "SAH_BIN.h"
+#include "SAH_build.h"
+#include "hierarchy.h"
 
 
 void Parse(Render_World& world,int& width,int& height,const char* test_file)
@@ -197,8 +200,15 @@ void Parse(Render_World& world,int& width,int& height,const char* test_file)
             ss>>world.forward_casting_times;
             assert(ss);
         }
+        else if(item=="sah_bin"){
+            ss>>s0>>s1;
+            world.sah_bin_build = new SAH_BIN(std::stoi(s0), std::stoi(s1));
+            world.sah_bin = true;
+            assert(ss);
+        }
         else if(item=="sah_sweep"){
-            ss>>world.sah_build.threshold;
+            ss>>s0;
+            world.sah_build = new SAH_Build(std::stoi(s0));
             world.sah_sweep = true;
             assert(ss);
         }

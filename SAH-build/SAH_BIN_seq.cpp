@@ -3,9 +3,8 @@
 #include <limits>
 #include <queue>
 #include "inline_func.cpp"
-#include <cilk/cilk.h>
-#include <cilk/cilk_api.h>
-#include <atomic>
+#include "common.h"
+#include "../samplesort/samplesort.h"
 
 
 struct Node{
@@ -19,6 +18,7 @@ struct Node{
 };
 
 void SAH_BIN::Build(std::vector<Entry>& entries){
+    // std::cout<<entries.size()<<std::endl;
     BIN_Build(root, entries, 0, entries.size());
 }
 
@@ -45,15 +45,21 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         std::vector<Box> buckets(buckets_num);
         // map: buckets index -> entries index
         std::vector<int> BucketToEntry(buckets_num);
-        cilk_for(int i=0; i<buckets.size(); i++) buckets[i].Make_Empty();
+        for(auto& b: buckets) b.Make_Empty();
 
         // TODO bucket sorting
-        // compare two Entry along a-dimension
+        compare two Entry along a-dimension
         std::sort(entries.begin()+begin, entries.begin()+end, 
             [dimension](const auto& e1, const auto& e2){
                 return (e1.box.lo+e1.box.hi)[dimension]<(e2.box.lo+e2.box.hi)[dimension];
             }
         );
+
+        // samplesort
+        // compare comp(dimension);
+        // Samplesort<Entry> ssort(comp, begin);
+        // std::vector<Entry> arr(entries.begin()+begin, entries.begin()+end);
+        // ssort.sort(arr, entries);
         
         // bucketing
         bucketing(dimension, largest_dist, lo_dist, buckets, BucketToEntry, entries, begin, end);
@@ -66,10 +72,8 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         }
         //std::cout<<"partition:"<<begin<<" "<<en_index<<" "<<end<<std::endl;
         
-        cilk_spawn
         BIN_Build(curr->lChild, entries, begin, en_index);
         BIN_Build(curr->rChild, entries, en_index, end);
-        cilk_sync;
     }
 }
 
@@ -117,16 +121,18 @@ void SAH_BIN::bucketing(int dimension, double largest_dist, double lo_dist, std:
         t += interval;
     }
 
-    // TODO prallel bucket sort
     // allocate entries into buckets
     int i=begin;
     for(size_t j=0; j<partitions.size();){
         double position = entries[i].box.lo[dimension]+entries[i].box.hi[dimension];
+        
         if(position<=partitions[j]){
             buckets[j] = buckets[j].Union(entries[i].box);
             i++;
         }
-        else BucketToEntry[++j] = i;
+        else{
+            BucketToEntry[++j] = i;
+        }
     }
     BucketToEntry[partitions.size()] = i;
     // entries larger than the last partition
@@ -188,7 +194,6 @@ void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>&
     }
     
     while(!q.empty()){
-        // TODO test
         for(int k=q.size(); k>0; k--){
             Node* temp = q.front(); q.pop();
             if(!temp->entry_list.empty()){

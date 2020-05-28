@@ -108,10 +108,10 @@ void Samplesort<T>::dac_sort_bucket(vector<T>& arr, int b_begin, int b_end){
         std::sort(arr.begin()+arr_begin+output_begin, arr.begin()+arr_end+output_begin, comp);
     }
     else{
-        cilk_spawn
+        /*cilk_spawn*/
         dac_sort_bucket(arr, b_begin, b_begin+n/2);
         dac_sort_bucket(arr, b_begin+n/2, b_end);
-        cilk_sync;
+        /*cilk_sync;*/
     }
 }
 
@@ -137,10 +137,10 @@ void Samplesort<T>::dac_merge(vector<T>& arr, vector<T>& output, int begin, int 
         //cout<<begin<<" "<<i<<", "<<s->begin<<" "<<s->end<<endl;
     }
     else{
-        cilk_spawn
+        /*cilk_spawn*/
         dac_merge(arr, output, begin, begin+n/2, th);
         dac_merge(arr, output, begin+n/2, end, th);
-        cilk_sync;
+        /*cilk_sync;*/
     }
 }
 
@@ -193,10 +193,10 @@ void Samplesort<T>::dac_sort_subarray(vector<T>& arr, int begin, int end, int th
         }
     }
     else{
-        cilk_spawn
+        /*cilk_spawn*/
         dac_sort_subarray(arr, begin, begin+n/2, th);
         dac_sort_subarray(arr, begin+n/2, end, th);
-        cilk_sync;
+        /*cilk_sync;*/
     }
 }
 
@@ -206,7 +206,7 @@ void Samplesort<T>::transpose(int bucket_num, int bucket_size){
     vector<int> _vec_bucket_T(bucket_num*bucket_size);
     swap(vec_bucket_T, _vec_bucket_T);
 
-    cilk_for(int i=0; i<bucket_num; i++){
+    /*cilk_for*/for(int i=0; i<bucket_num; i++){
         int offset = i * bucket_size;
         for(int j=0; j<bucket_size; j++){
             vec_bucket_T[offset+j] = vec_subarray_count[j*subarray_size+i];

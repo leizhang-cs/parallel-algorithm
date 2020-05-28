@@ -1,5 +1,5 @@
 #include "samplesort.h"
-//#include "scan.h"
+#include "scan.h"
 #include "../SAH-build/hierarchy.h"
 using namespace std;
 

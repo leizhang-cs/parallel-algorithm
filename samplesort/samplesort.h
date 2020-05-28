@@ -16,8 +16,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <atomic>
-//#include <cilk/cilk.h>
-//#include <cilk/cilk_api.h>
+#include <cilk/cilk.h>
+#include <cilk/cilk_api.h>
 #include "get_time.h"
 #include "../SAH-build/common.h"
 //#include "common.h"

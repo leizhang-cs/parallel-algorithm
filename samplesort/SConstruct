@@ -1,0 +1,14 @@
+import os
+env = Environment(ENV = os.environ)
+
+
+#env.Append(LIBS=["cilkrts"])
+#env.Append(CXXFLAGS=["-std=c++14","-g","-Wall","-O3","-I/usr/include/libpng12","-I../c++","-mcx16","-march=native","-DCILK","-fcilkplus"])
+env.Append(CXXFLAGS=["-std=c++14","-g","-O3"])
+env.Append(LINKFLAGS=["-L/usr/local/lib"])
+
+env.Program("ssort",
+            [
+                "main.cpp","samplesort.cpp"
+            ])
+

@@ -3,6 +3,8 @@
 #include <limits>
 #include <queue>
 #include "inline_func.cpp"
+#include "common.h"
+#include "../samplesort/samplesort.h"
 
 
 struct Node{
@@ -16,6 +18,7 @@ struct Node{
 };
 
 void SAH_BIN::Build(std::vector<Entry>& entries){
+    // std::cout<<entries.size()<<std::endl;
     BIN_Build(root, entries, 0, entries.size());
 }
 
@@ -46,11 +49,20 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
 
         // TODO bucket sorting
         // compare two Entry along a-dimension
-        std::sort(entries.begin()+begin, entries.begin()+end, 
-            [dimension](const auto& e1, const auto& e2){
-                return (e1.box.lo+e1.box.hi)[dimension]<(e2.box.lo+e2.box.hi)[dimension];
-            }
-        );
+        // std::sort(entries.begin()+begin, entries.begin()+end, 
+        //     [dimension](const auto& e1, const auto& e2){
+        //         return (e1.box.lo+e1.box.hi)[dimension]<(e2.box.lo+e2.box.hi)[dimension];
+        //     }
+        // );
+
+        // stl::sort
+        // std::sort(entries.begin()+begin, entries.begin()+end, compare(dimension));
+        
+        // samplesort
+        compare comp(dimension);
+        Samplesort<Entry> ssort(comp, begin);
+        std::vector<Entry> arr(entries.begin()+begin, entries.begin()+end);
+        ssort.sort(arr, entries);
         
         // bucketing
         bucketing(dimension, largest_dist, lo_dist, buckets, BucketToEntry, entries, begin, end);

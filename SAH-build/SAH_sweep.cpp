@@ -3,6 +3,7 @@
 #include <limits>
 #include <queue>
 #include "inline_func.cpp"
+#include "common.h"
 
 
 struct Node{
@@ -41,10 +42,11 @@ void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
         for(int i=0; i<3; i++){
             //std::cout<<"axis:"<<i<<std::endl;
             // compare along i-axis
-            std::sort(entries.begin()+begin, entries.begin()+end, [i](auto& e1, auto& e2){
-                vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
-                return c1[i]<c2[i];
-            });
+            // std::sort(entries.begin()+begin, entries.begin()+end, [i](auto& e1, auto& e2){
+            //     vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
+            //     return c1[i]<c2[i];
+            // });
+            std::sort(entries.begin()+begin, entries.begin()+end, compare(i));
             // search and update bestCut, current node box
             if(updateBestPartition(global_index, global_min, curr->box, entries, 
                 begin, end)){
@@ -53,10 +55,11 @@ void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
         }
         if(axis==-1){ std::cout<<"fail update"<<std::endl; return; }
         else if(axis!=2){
-            std::sort(entries.begin()+begin, entries.begin()+end, [axis](auto& e1, auto& e2){
-                vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
-                return c1[axis]<c2[axis];
-            });
+            // std::sort(entries.begin()+begin, entries.begin()+end, [axis](auto& e1, auto& e2){
+            //     vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
+            //     return c1[axis]<c2[axis];
+            // });
+            std::sort(entries.begin()+begin, entries.begin()+end, compare(axis));
         }
 
         //std::cout<<"split:"<<global_index<<std::endl;

@@ -8,6 +8,6 @@ ambient_light white 0.3
 enable_shadows 0
 #incremental 1
 #sah_sweep 2
-sah_bin 1 16
+sah_bin 3 16
 camera 0.02 3 5 0 0 0 0 1 0 90
 

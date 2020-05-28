@@ -2,7 +2,6 @@
 #define __BOX_H__
 
 #include "ray.h"
-#include "misc.h"
 #include <limits>
 
 class Box

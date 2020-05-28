@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include "vec.h"
-#include "misc.h"
 #include "ray.h"
 #include <vector>
 

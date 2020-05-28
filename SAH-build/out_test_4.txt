@@ -5,14 +5,11 @@ color blue 0 0 1
 color black 0 0 0
 color green 0 1 0
 phong_shader white_shader white white white 50
-phong_shader blue_shader blue blue blue 50
-phong_shader red_shader red red red 50
-phong_shader green_shader green green green 50
-reflective_shader reflectr green_shader .8
+reflective_shader reflectr white_shader .8
 mesh - cow.obj white_shader
 sphere - 0 .5 -.5 .5 reflectr
-sphere - -.3 .4 0 .1 red_shader
-plane - 0 -.32 0 0 1 0 blue_shader
+sphere - -.3 .4 0 .1 white_shader
+plane - 0 -.32 0 0 1 0 white_shader
 point_light .8 .8 4 white 100
 point_light .8 4 1 white 100
 ambient_light white 0

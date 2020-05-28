@@ -4,13 +4,8 @@
 #include "flat_shader.h"
 #include "mesh.h"
 #include "phong_shader.h"
-#include "plane.h"
 #include "point_light.h"
-#include "reflective_shader.h"
-#include "refractive_shader.h"
-#include "forward.h"
 #include "render_world.h"
-#include "sphere.h"
 #include "SAH_BIN.h"
 #include "SAH_sweep.h"
 #include "incremental_build.h"
@@ -50,28 +45,6 @@ void Parse(Render_World& world,int& width,int& height,const char* test_file)
             ss>>name>>u;
             assert(ss);
             colors[name]=u;
-        }
-        else if(item=="plane")
-        {
-            ss>>name>>u>>v>>s0;
-            assert(ss);
-            Object* o=new Plane(u,v);
-            std::map<std::string,Shader*>::const_iterator sh=shaders.find(s0);
-            assert(sh!=shaders.end());
-            o->material_shader=sh->second;
-            if(name=="-") world.objects.push_back(o);
-            else objects[name]=o;
-        }
-        else if(item=="sphere")
-        {
-            ss>>name>>u>>f0>>s0;
-            assert(ss);
-            Object* o=new Sphere(u,f0);
-            std::map<std::string,Shader*>::const_iterator sh=shaders.find(s0);
-            assert(sh!=shaders.end());
-            o->material_shader=sh->second;
-            if(name=="-") world.objects.push_back(o);
-            else objects[name]=o;
         }
         else if(item=="mesh")
         {
@@ -118,22 +91,6 @@ void Parse(Render_World& world,int& width,int& height,const char* test_file)
             assert(c2!=colors.end());
             shaders[name]=new Phong_Shader(world,c0->second,c1->second,c2->second,f0);
         }
-        else if(item=="reflective_shader")
-        {
-            ss>>name>>s0>>f0;
-            assert(ss);
-            std::map<std::string,Shader*>::const_iterator sh=shaders.find(s0);
-            assert(sh!=shaders.end());
-            shaders[name]=new Reflective_Shader(world,sh->second,f0);
-        }
-        else if(item=="refractive_shader")
-        {
-            ss>>name>>s0>>f0;
-            assert(ss);
-            std::map<std::string,Shader*>::const_iterator sh=shaders.find(s0);
-            assert(sh!=shaders.end());
-            shaders[name]=new Refractive_Shader(world,sh->second,f0);
-        }
         else if(item=="point_light")
         {
             ss>>u>>s0>>f0;
@@ -171,21 +128,6 @@ void Parse(Render_World& world,int& width,int& height,const char* test_file)
             ss>>world.enable_shadows;
             assert(ss);
         }
-        else if(item=="disable_fresnel_refraction")
-        {
-            ss>>world.disable_fresnel_refraction;
-            assert(ss);
-        }
-        else if(item=="disable_fresnel_reflection")
-        {
-            ss>>world.disable_fresnel_reflection;
-            assert(ss);
-        }
-        else if(item=="disable_forward")
-        {
-            ss>>world.disable_forward;
-            assert(ss);
-        }
         else if(item=="recursion_depth_limit")
         {
             ss>>world.recursion_depth_limit;
@@ -194,11 +136,6 @@ void Parse(Render_World& world,int& width,int& height,const char* test_file)
         else if(item=="anti_aliasing_samples")
         {
             ss>>world.anti_aliasing_samples;
-            assert(ss);
-        }
-        else if(item=="forward_casting_times")
-        {
-            ss>>world.forward_casting_times;
             assert(ss);
         }
         else if(item=="sah_bin"){

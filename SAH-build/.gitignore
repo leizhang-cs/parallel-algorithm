@@ -2,3 +2,8 @@
 *.o
 *.png
 *.dblite
+
+# executable
+*.exe
+*.out
+*.app

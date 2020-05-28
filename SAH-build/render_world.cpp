@@ -1,10 +1,7 @@
 #include "render_world.h"
 #include "light.h"
 #include "ray.h"
-#include "light_ray.h"
-#include "sphere.h"
 #include "shader.h"
-#include "forward.h"
 #include "inline_func.cpp"
 #include "get_time.h"
 
@@ -105,43 +102,10 @@ vec3 Render_World::Cast_Ray(const Ray& ray,int recursion_depth)
         normal = hit.object->Normal(intersection_point, hit.part);
         color += hit.object->material_shader->Shade_Surface(ray, \
             intersection_point, normal, recursion_depth);
-        vec3 Intense = hit.object->Get_GI(intersection_point, hit.part);
-        color += hit.object->material_shader->Shade_Surface(Intense);
         return color;    
     }
 }
 
-// L: Light, I: Intense
-void Render_World::Cast_Ray(const Light_Ray& ray, int recursion_depth)
-{
-    //if(recursion_depth==1) std::cout<<"e:"<<ray.endpoint<<" d:"<<ray.direction<<" ";
-    
-    Hit hit = Closest_Intersection(ray);
-    if(!hit.object){
-        //std::cout<<"unhit"<<std::endl;
-        return;
-    }
-    else{
-        vec3 intersection_point = ray.Point(hit.dist);
-        vec3 normal = hit.object->Normal(intersection_point, hit.part);
-
-        if(hit.object->material_shader->rf_able){
-            //std::cout<<"able"<<std::endl;
-            hit.object->material_shader->Illuminate_Surface(ray, intersection_point, 
-                normal, recursion_depth);
-        }
-        else{
-            if(recursion_depth==1){
-                //std::cout<<"unable 1"<<std::endl;
-                return;
-            }
-            else{
-                double brightness = ray.L->Light_Brightness(hit.dist, ray.attenuation);
-                hit.object->Update_GI(ray.L->color*brightness, intersection_point, hit.part);
-            }
-        }
-    }
-}
 
 void Render_World::Initialize_Hierarchy()
 {
@@ -167,12 +131,4 @@ void Render_World::Initialize_Hierarchy()
     
     //std::cout<<hierarchy->entries.size()<<" "<<hierarchy->tree.size()<<std::endl;
     //std::cout<<"rfable_size:"<<hierarchy->entries_rfable.size()<<std::endl;
-    
-    if(!disable_forward){
-        timer t; t.start();
-        Forward forward_phase(*this);
-        forward_phase.Initialize_GI();
-        t.stop();
-        std::cout<<"illuminate time: "<<t.get_total()<<std::endl;
-    }
 }

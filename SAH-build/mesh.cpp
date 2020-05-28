@@ -20,6 +20,7 @@ void Mesh::Read_Obj(const char* file, const vec3& position)
     std::string line;
     ivec3 e;
     vec3 v;
+    vec<int,4> e4;
     box.Make_Empty();
     while(fin)
     {
@@ -32,18 +33,26 @@ void Mesh::Read_Obj(const char* file, const vec3& position)
             box.Include_Point(v);
             vertices_attr.push_back({0,0,0});
         }
-
-        if(sscanf(line.c_str(), "f %d %d %d", &e[0], &e[1], &e[2]) == 3)
+        if(sscanf(line.c_str(), "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d",
+            &e4[0], &e4[1], &e4[2], &e4[3]) == 4)
+        {
+            for(int i=0;i<4;i++) e4[i]--;
+            triangles.emplace_back(e4[0],e4[1],e4[2]);
+            //triangles.emplace_back(e4[0],e4[1],e4[3]);
+            triangles.emplace_back(e4[0],e4[2],e4[3]);
+            //triangles.emplace_back(e4[1],e4[2],e4[3]);
+        }
+        else if(sscanf(line.c_str(), "f %d %d %d", &e[0], &e[1], &e[2]) == 3)
         {
             for(int i=0;i<3;i++) e[i]--;
             triangles.push_back(e);
         }
-        if(sscanf(line.c_str(), "f %d/%*d %d/%*d %d/%*d", &e[0], &e[1], &e[2]) == 3)
+        else if(sscanf(line.c_str(), "f %d/%*d %d/%*d %d/%*d", &e[0], &e[1], &e[2]) == 3)
         {
             for(int i=0;i<3;i++) e[i]--;
             triangles.push_back(e);
         }
-        if(sscanf(line.c_str(), "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &e[0], &e[1], &e[2]) == 3)
+        else if(sscanf(line.c_str(), "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &e[0], &e[1], &e[2]) == 3)
         {
             for(int i=0;i<3;i++) e[i]--;
             triangles.push_back(e);

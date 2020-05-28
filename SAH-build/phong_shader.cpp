@@ -1,7 +1,6 @@
 #include "light.h"
 #include "phong_shader.h"
 #include "ray.h"
-#include "light_ray.h"
 #include "render_world.h"
 #include "object.h"
 

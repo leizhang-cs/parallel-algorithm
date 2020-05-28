@@ -11,7 +11,7 @@ ssort_seq: samplesort_seq.cpp samplesort.h
         $(CC) $(CFLAGS) -DNDEBUG samplesort_seq.cpp -o ssort_seq
 
 ssort_na: samplesort_naive.cpp samplesort.h
-		$(CC) $(CFLAGS) -DNDEBUG samplesort_naive.cpp -o ssort_na
+        $(CC) $(CFLAGS) -DNDEBUG samplesort_naive.cpp -o ssort_na
 
 clean:
         rm -f ssort ssort_seq ssort_na

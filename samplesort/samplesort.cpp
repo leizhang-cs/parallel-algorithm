@@ -220,19 +220,19 @@ void Samplesort<T>::sampling(const vector<T>& arr, int n){
     bool _debug_flag = false;
 
     int bucket_size = sqrt(n), logn = LOG(n);
-    int bucket_num = (n-1)/bucket_size + 1;
+    int bucket_num = n/bucket_size;
     vector<int> bucket_index(bucket_num);
     vector<int> sample_bucket(logn);
-
+    if(logn>bucket_num){ cout<<"cannot sample"<<endl; exit(1); }
     // choose logn buckets randomly
     for(int i=0; i<bucket_num; i++) bucket_index[i] = i;
-    //
+    
     for(int i=0; i<logn; i++){
         int j = hash32(i)%(bucket_num-i);
         sample_bucket[i] = bucket_index[j];
-        swap(bucket_index[logn-1-i], bucket_index[j]);
+        swap(bucket_index[bucket_num-1-i], bucket_index[j]);
     }
-    if(_debug_flag) cout<<"sampling()"<<endl;
+    
     // N^1/2*logn samples
     vector<T> arr_sample(bucket_size*logn);
     for(int i=0; i<logn; i++){

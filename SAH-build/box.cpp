@@ -27,9 +27,15 @@ void Box::Make_Empty()
 }
 
 // half of surface area
-double Box::Surface_Area(){
+double Box::Surface_Area() const{
     double x = hi[0]-lo[0], y = hi[1]-lo[1], z = hi[2]-lo[2];
     return x*y + y*z + x*z;
+}
+
+// 2*center
+vec3 Box::Center() const
+{
+    return lo + hi;
 }
 /*
 bool Box::Intersection(const Ray& ray) const

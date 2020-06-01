@@ -32,6 +32,9 @@ private:
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
     void findLongestDim(int& dimension, double& largest_dist, double& lo_dist, 
         const std::vector<Entry>& entries, int begin, int end);
+    void bucketing(std::vector<Entry>& entries, int begin, int end, double left, double right, 
+        double split_th, int dimension, std::vector<Box>& buckets, std::vector<int>& BucketToEntry,
+        int nth_bucket);
     void bucketing(int dimension, double largest_dist, double lo_dist, std::vector<Box>& buckets, 
         std::vector<int>& BucketToEntry, const std::vector<Entry>& entries, int begin, int end);
     int findBestPartition(const std::vector<Box>& buckets, const std::vector<int>& BucketToEntry, 

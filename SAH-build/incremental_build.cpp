@@ -6,7 +6,7 @@
 double diff_t = 1e-2;
 
 // compare two Entry
-struct compare{
+struct comp{
     bool operator()(Entry& e1, Entry& e2){
         double diff = e1.box.lo[0] - e2.box.lo[0];
         if(std::abs(diff)>diff_t) return diff<0;
@@ -57,8 +57,8 @@ Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) c
 void Incremental_Build::Reorder_Entries(std::vector<Entry>& entries)
 {
     if(!entries.size()) return;
-    compare comp;
-    std::sort(entries.begin(), entries.end(), comp);
+    comp cmp;
+    std::sort(entries.begin(), entries.end(), cmp);
 }
 
 // Populate tree from entries.

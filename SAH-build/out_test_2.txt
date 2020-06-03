@@ -7,7 +7,7 @@ point_light 0 10 0 white 1000
 ambient_light white 0.3
 enable_shadows 0
 #incremental 1
-#sah_sweep 2
-sah_bin 2 16
+#sah_sweep 3
+sah_bin 3 16
 camera 0.01 2.5 3 0 0 0 0 1 0 70
 

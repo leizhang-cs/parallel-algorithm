@@ -1,24 +1,18 @@
 #include "SAH_BIN.h"
-#include <algorithm>
-#include <limits>
-#include <queue>
 #include "inline_func.cpp"
 #include "common.h"
 #include "../samplesort/samplesort.h"
+#include <algorithm>
+#include <limits>
+#include <queue>
 
-
-struct Node{
-    Box box;
-    Node* lChild;
-    Node* rChild;
-    std::vector<Entry*> entry_list;
-    
-    Node():lChild(nullptr),rChild(nullptr){}
-    Node(int n):lChild(nullptr),rChild(nullptr),entry_list(n){}
-};
+// TODO candidate i
 
 void SAH_BIN::Build(std::vector<Entry>& entries){
-    // std::cout<<entries.size()<<std::endl;
+    //std::cout<<entries.size()<<std::endl;
+    std::vector<Node> _nodes(entries.size()*2);
+    std::swap(_nodes, nodes);
+    root = &nodes[index++];
     BIN_Build(root, entries, 0, entries.size());
 }
 
@@ -28,10 +22,9 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
     // when failing to find best partition or dimension
     bool safe_mode = true;
     if(end-begin<=threshold){
-        Make_Leaf(curr,entries,begin,end);
+        Make_Leaf(curr, entries, begin, end);
     }
     else{
-        curr = new Node();
         // find longest dimension
         int dimension = -1;
         double largest_dist = 0, lo_dist;
@@ -47,7 +40,6 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         std::vector<int> BucketToEntry(buckets_num);
         for(auto& b: buckets) b.Make_Empty();
 
-        // TODO bucket sorting
         // compare two Entry along a-dimension
         std::sort(entries.begin()+begin, entries.begin()+end, 
             [dimension](const auto& e1, const auto& e2){
@@ -64,14 +56,19 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         // bucketing
         bucketing(dimension, largest_dist, lo_dist, buckets, BucketToEntry, entries, begin, end);
 
-        // find best partition, right half entries' index
+        // Method 2: bucketing without comparison sort
+        //bucketing(entries, begin, end, lo_dist, lo_dist+largest_dist, largest_dist/buckets_num, \
+	         dimension, buckets, BucketToEntry, 0);
+
         int en_index = findBestPartition(buckets, BucketToEntry, curr->box);
+        
         if(en_index==-1){ // when failing to find partition, make leaf or exit(1).
             if(safe_mode){ Make_Leaf(curr,entries,begin,end); return; }
             else{ std::cout<<"partition failed"<<std::endl; exit(EXIT_FAILURE); }
         }
         //std::cout<<"partition:"<<begin<<" "<<en_index<<" "<<end<<std::endl;
-        
+        curr->lChild = &nodes[index++];
+        curr->rChild = &nodes[index++];
         BIN_Build(curr->lChild, entries, begin, en_index);
         BIN_Build(curr->rChild, entries, en_index, end);
     }
@@ -105,6 +102,29 @@ void SAH_BIN::findLongestDim(int& dimension, double& largest_dist, double& lo_di
     }
 }
 
+void SAH_BIN::bucketing(std::vector<Entry>& entries, int begin, int end, double left, double right, 
+    double split_th, int dimension, std::vector<Box>& buckets, std::vector<int>& BucketToEntry,
+    int nth_bucket)
+{
+    if(right-left<=split_th*1.5){
+        BucketToEntry[nth_bucket] = begin;
+        Box& currBox = buckets[nth_bucket];
+        for(int i=begin; i<end; i++) currBox = currBox.Union(entries[i].box);
+        return;
+    }
+    double split = (left+right)/2.0;
+    int i = begin, j = begin==end? end: end-1; // in case begin > end
+    while(i<j){
+        while(i<j && entries[i].box.Center()[dimension]<split) i++;
+        while(i<j && entries[j].box.Center()[dimension]>=split) j--;
+        std::swap(entries[i], entries[j]);
+    }
+    
+    bucketing(entries, begin, j, left, split, split_th, dimension, buckets, 
+        BucketToEntry, 2*nth_bucket);
+    bucketing(entries, j, end, split, right, split_th, dimension, buckets, 
+        BucketToEntry, 2*nth_bucket+1);
+}
 
 void SAH_BIN::bucketing(int dimension, double largest_dist, double lo_dist, std::vector<Box>& buckets,
     std::vector<int>& BucketToEntry, const std::vector<Entry>& entries, int begin, int end)
@@ -171,17 +191,6 @@ int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vecto
     return en_index;
 }
 
-inline
-void SAH_BIN::Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end){
-    int n = end - begin;
-    curr = new Node(n);
-    curr->box.Make_Empty();
-    for(int i=0; i<n; i++){
-        curr->box = curr->box.Union(entries[begin+i].box);
-        curr->entry_list[i] = &entries[begin+i];
-    }
-}
-
 // candidates: pointer of entries. Level order traversal
 void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const
 {
@@ -196,9 +205,9 @@ void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>&
     while(!q.empty()){
         for(int k=q.size(); k>0; k--){
             Node* temp = q.front(); q.pop();
-            if(!temp->entry_list.empty()){
-                for(auto en: temp->entry_list){
-                    candidates.push_back(en);
+            if(temp->begin!=-1){
+                for(int i=temp->begin; i<temp->end; i++){
+                    candidates.push_back(&entries[i]);
                 }
             }
             if(temp->lChild && temp->lChild->box.Intersection(ray)){

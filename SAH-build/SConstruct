@@ -1,18 +1,18 @@
 import os
 env = Environment(ENV = os.environ)
 
-#env.Append(LIBS=["png"])
-env.Append(LIBS=["cilkrts"])
-env.Append(CXXFLAGS=["-std=c++14","-g","-Wall","-O3","-I/usr/include/libpng12","-I../c++","-mcx16","-march=native","-DCILK","-fcilkplus"])
-#env.Append(CXXFLAGS=["-std=c++14","-g","-Wall","-O3","-I/usr/include/libpng12"])
+env.Append(LIBS=["png"])
+#env.Append(LIBS=["cilkrts"])
+#env.Append(CXXFLAGS=["-std=c++14","-g","-Wall","-O3","-I/usr/include/libpng12","-I../c++","-mcx16","-march=native","-DCILK","-fcilkplus"])
+env.Append(CXXFLAGS=["-std=c++14","-g","-Wall","-O3","-I/usr/include/libpng12"])
 env.Append(LINKFLAGS=["-L/usr/local/lib"])
 
 env.Program("ray_tracer",
             [
-                #"dump_png.cpp",
+                "dump_png.cpp",
                 "camera.cpp","main.cpp","parse.cpp","flat_shader.cpp",
                 "phong_shader.cpp", "render_world.cpp","box.cpp","mesh.cpp",
                 "SAH_sweep.cpp", "SAH_BIN.cpp", "incremental_build.cpp",
-                "../samplesort/samplesort.cpp"
+                #"../samplesort/samplesort.cpp"
             ])
 

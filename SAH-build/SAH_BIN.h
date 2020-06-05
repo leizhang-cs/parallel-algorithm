@@ -3,6 +3,7 @@
 
 #include "object.h"
 #include "hierarchy.h"
+#include <atomic>
 
 struct Entry;
 
@@ -15,7 +16,7 @@ public:
     SAH_BIN():buckets_num(0){}
     // threshold of treeNode, buckets number for partition
     SAH_BIN(int threshold_input, int buckets_num_input)
-        :Hierarchy(threshold_input),buckets_num(buckets_num_input)
+        :Hierarchy(threshold_input),buckets_num(buckets_num_input),index(0)
     {}
 
     const int buckets_num;
@@ -27,7 +28,10 @@ public:
         const override;
 
 private:
-    Node* root; // root of BVH
+    Node* root;
+    std::atomic_int index;
+    
+    std::vector<Node> nodes; // nodes of BVH, nodes[0] is the root
 
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
     void findLongestDim(int& dimension, double& largest_dist, double& lo_dist, 
@@ -42,5 +46,24 @@ private:
     void Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end);
 };
 
+struct Node{
+    Box box;
+    Node* lChild;
+    Node* rChild;
+    int begin;
+    int end;
+    
+    Node():lChild(nullptr),rChild(nullptr),begin(-1),end(-1){}
+};
+
+inline
+void SAH_BIN::Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end){
+    curr->box.Make_Empty();
+    curr->begin = begin;
+    curr->end = end;
+    for(int i=begin; i<end; i++){
+        curr->box = curr->box.Union(entries[i].box);
+    }
+}
 
 #endif

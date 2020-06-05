@@ -10,17 +10,11 @@
 #include "../samplesort/samplesort.h"
 
 
-struct Node{
-    Box box;
-    Node* lChild;
-    Node* rChild;
-    std::vector<Entry*> entry_list;
-    
-    Node():lChild(nullptr),rChild(nullptr){}
-    Node(int n):lChild(nullptr),rChild(nullptr),entry_list(n){}
-};
 
 void SAH_BIN::Build(std::vector<Entry>& entries){
+    std::vector<Node> _nodes(entries.size()*2);
+    std::swap(_nodes, nodes);
+    root = &nodes[index++];
     BIN_Build(root, entries, 0, entries.size());
 }
 
@@ -30,7 +24,7 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
     // when failing to find best partition or dimension
     bool safe_mode = true;
     if(end-begin<=threshold){
-        Make_Leaf(curr,entries,begin,end);
+        Make_Leaf(curr, entries, begin, end);
     }
     else{
         curr = new Node();
@@ -50,22 +44,22 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         cilk_for(size_t i=0; i<buckets.size(); i++) buckets[i].Make_Empty();
 
         // Method 1: sort and bucket 
-	/*if(end-begin<1e4){ // stl::sort
-	    std::sort(entries.begin()+begin, entries.begin()+end, compare(dimension));
-	}
-	else{ //samplesort
-            compare comp(dimension);
-            Samplesort<Entry> ssort(comp, begin);
-       	    std::vector<Entry> arr(entries.begin()+begin, entries.begin()+end);
-            ssort.sort(arr, entries);
+        /*if(end-begin<1e4){ // stl::sort
+            std::sort(entries.begin()+begin, entries.begin()+end, compare(dimension));
         }
-        // bucketing
-        bucketing(dimension, largest_dist, lo_dist, buckets, BucketToEntry, entries, begin, end);
-	*/
-	
-	// Method 2: bucketing without comparison sort
-	bucketing(entries, begin, end, lo_dist, lo_dist+largest_dist, largest_dist/buckets_num, \
-		dimension, buckets, BucketToEntry, 0);
+        else{ //samplesort
+                compare comp(dimension);
+                Samplesort<Entry> ssort(comp, begin);
+                std::vector<Entry> arr(entries.begin()+begin, entries.begin()+end);
+                ssort.sort(arr, entries);
+            }
+            // bucketing
+            bucketing(dimension, largest_dist, lo_dist, buckets, BucketToEntry, entries, begin, end);
+        */
+        
+        // Method 2: bucketing without comparison sort
+        bucketing(entries, begin, end, lo_dist, lo_dist+largest_dist, largest_dist/buckets_num, \
+            dimension, buckets, BucketToEntry, 0);
 	
         // find best partition, right half entries' index
         int en_index = findBestPartition(buckets, BucketToEntry, curr->box);
@@ -74,7 +68,9 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
             else{ std::cout<<"partition failed"<<std::endl; exit(EXIT_FAILURE); }
         }
         //std::cout<<"partition:"<<begin<<" "<<en_index<<" "<<end<<std::endl;
-	 
+
+        curr->lChild = &nodes[index++];
+        curr->rChild = &nodes[index++];
         cilk_spawn
         BIN_Build(curr->lChild, entries, begin, en_index);
         BIN_Build(curr->rChild, entries, en_index, end);
@@ -197,16 +193,6 @@ int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vecto
     return en_index;
 }
 
-inline
-void SAH_BIN::Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end){
-    int n = end - begin;
-    curr = new Node(n);
-    curr->box.Make_Empty();
-    for(int i=0; i<n; i++){
-        curr->box = curr->box.Union(entries[begin+i].box);
-        curr->entry_list[i] = &entries[begin+i];
-    }
-}
 
 // candidates: pointer of entries. Level order traversal
 void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const
@@ -223,9 +209,9 @@ void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>&
         // TODO test
         for(int k=q.size(); k>0; k--){
             Node* temp = q.front(); q.pop();
-            if(!temp->entry_list.empty()){
-                for(auto en: temp->entry_list){
-                    candidates.push_back(en);
+            if(temp->begin!=-1){
+                for(int i=temp->begin; i<temp->end; i++){
+                    candidates.push_back(&entries[i]);
                 }
             }
             if(temp->lChild && temp->lChild->box.Intersection(ray)){

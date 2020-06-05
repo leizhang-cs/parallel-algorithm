@@ -48,7 +48,7 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         for(auto& b: buckets) b.Make_Empty();
 
         // TODO bucket sorting
-        compare two Entry along a-dimension
+        // compare two Entry along a-dimension
         std::sort(entries.begin()+begin, entries.begin()+end, 
             [dimension](const auto& e1, const auto& e2){
                 return (e1.box.lo+e1.box.hi)[dimension]<(e2.box.lo+e2.box.hi)[dimension];

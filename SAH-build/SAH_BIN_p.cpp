@@ -1,14 +1,12 @@
 #include "SAH_BIN.h"
+#include "inline_func.cpp"
+#include "common.h"
+#include "../samplesort/samplesort.h"
 #include <algorithm>
 #include <limits>
 #include <queue>
 #include <cilk/cilk.h>
 #include <cilk/cilk_api.h>
-#include <atomic>
-#include "inline_func.cpp"
-#include "common.h"
-#include "../samplesort/samplesort.h"
-
 
 
 void SAH_BIN::Build(std::vector<Entry>& entries){

@@ -4,7 +4,7 @@
 #include <vector>
 #include "camera.h"
 #include "hierarchy.h"
-#include "incremental_build.h"
+#include "bottomup_build.h"
 #include "SAH_sweep.h"
 #include "SAH_BIN.h"
 
@@ -34,7 +34,7 @@ public:
     // TODO enum
 
 
-    Hierarchy* hierarchy; // incremental
+    Hierarchy* hierarchy; // BottomUp
 
     Render_World();
     ~Render_World();

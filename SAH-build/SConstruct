@@ -13,7 +13,7 @@ env.Program("ray_tracer",
                 "dump_png.cpp",
                 "camera.cpp","main.cpp","parse.cpp","flat_shader.cpp",
                 "phong_shader.cpp", "render_world.cpp","mesh.cpp",
-                "SAH_sweep.cpp", "SAH_BIN.cpp", "incremental_build.cpp",
+                "SAH_sweep.cpp", "SAH_BIN.cpp", "bottomup_build.cpp",
                 "../samplesort/samplesort.cpp"
             ])
 

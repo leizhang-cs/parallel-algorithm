@@ -4,12 +4,12 @@ color black 0 0 0
 phong_shader white_shader white white white 50
 mesh_pos - conference.obj -100 -100 100 white_shader
 point_light 200 400 0 white 1000000
-#point_light 0 300 100 white 10000
-#point_light 100 300 0 white 10000
+point_light 0 300 100 white 500000
+#point_light 100 300 0 white 1000000
 ambient_light white 0.3
 enable_shadows 0
-#incremental 1
+#bottomup 1
 #sah_sweep 3
-sah_bin 3 16
+sah_bin 5 32
 camera -200 250 250 0 0 0 0 1 0 105
 

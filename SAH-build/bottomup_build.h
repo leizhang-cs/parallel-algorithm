@@ -1,12 +1,12 @@
-#ifndef __INCREMENTAL_BUILD_H__
-#define __INCREMENTAL_BUILD_H__
+#ifndef __BOTTOMUP_BUILD_H__
+#define __BOTTOMUP_BUILD_H__
 
 #include "object.h"
 #include "hierarchy.h"
 
 struct Entry;
 
-class Incremental_Build: public Hierarchy
+class BottomUp_Build: public Hierarchy
 {
 public:
     virtual void Build(std::vector<Entry>& entries) override;

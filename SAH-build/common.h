@@ -12,7 +12,7 @@ struct Node{
     Box box;
     Node* lChild;
     Node* rChild;
-    int begin;
+    int begin; // Entry indices
     int end;
     
     Node():lChild(nullptr),rChild(nullptr),begin(-1),end(-1){}

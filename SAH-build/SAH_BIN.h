@@ -29,9 +29,10 @@ public:
 private:
     Node* root;
     std::atomic_int node_index;
+    std::vector<Node> nodes; // nodes of BVH, nodes[0] is the root
+    std::vector<int> constrains;
     bool sorting_method = false; // sorting or partition
     bool safe_mode = false; // when failing to find best partition or dimension
-    std::vector<Node> nodes; // nodes of BVH, nodes[0] is the root
 
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
     void findLongestDim(int& dimension, double& largest_dist, double& lo_dist, 

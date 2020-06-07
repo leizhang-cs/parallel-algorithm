@@ -1,4 +1,4 @@
-#include "incremental_build.h"
+#include "bottomup_build.h"
 #include "inline_func.cpp"
 #include <algorithm>
 #include <queue>
@@ -21,14 +21,14 @@ struct local_compare{
 };
 
 
-void Incremental_Build::Build(std::vector<Entry>& entries){
+void BottomUp_Build::Build(std::vector<Entry>& entries){
     Reorder_Entries(entries);
     Build_Tree(entries);
     //std::cout<<"h build done"<<std::endl;
 }
 
 // Return a list of candidates whose bounding boxes intersect the ray.
-void Incremental_Build::
+void BottomUp_Build::
 Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) const
 {
     if(!tree.size()) return;
@@ -54,14 +54,14 @@ Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) const
 
 // Reorder the entries vector so that adjacent entries tend to be nearby.
 // You may want to implement box.cpp first.
-void Incremental_Build::Reorder_Entries(std::vector<Entry>& entries)
+void BottomUp_Build::Reorder_Entries(std::vector<Entry>& entries)
 {
     if(!entries.size()) return;
     std::sort(entries.begin(), entries.end(), local_compare());
 }
 
 // Populate tree from entries.
-void Incremental_Build::Build_Tree(std::vector<Entry>& entries)
+void BottomUp_Build::Build_Tree(std::vector<Entry>& entries)
 {
     if(!entries.size()) return;
     int i = 0, j, size_en = entries.size(), size = 2*size_en-1;

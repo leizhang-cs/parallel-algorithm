@@ -1,6 +1,3 @@
-#include <map>
-#include <sstream>
-#include <string>
 #include "flat_shader.h"
 #include "mesh.h"
 #include "phong_shader.h"
@@ -8,8 +5,11 @@
 #include "render_world.h"
 #include "SAH_BIN.h"
 #include "SAH_sweep.h"
-#include "incremental_build.h"
+#include "bottomup_build.h"
 #include "hierarchy.h"
+#include <map>
+#include <sstream>
+#include <string>
 
 
 void Parse(Render_World& world,int& width,int& height,const char* test_file)
@@ -148,9 +148,9 @@ void Parse(Render_World& world,int& width,int& height,const char* test_file)
             world.hierarchy = new SAH_Sweep(std::stoi(s0));
             assert(ss);
         }
-        else if(item=="incremental"){
+        else if(item=="bottomup"){
             ss>>s0;
-            world.hierarchy = new Incremental_Build();
+            world.hierarchy = new BottomUp_Build();
             assert(ss);
         }
         else

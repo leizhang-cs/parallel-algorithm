@@ -1,12 +1,12 @@
 #include "incremental_build.h"
+#include "inline_func.cpp"
 #include <algorithm>
 #include <queue>
-#include "inline_func.cpp"
 
-double diff_t = 1e-2;
+static double diff_t = 1e-2;
 
 // compare two Entry
-struct comp{
+struct local_compare{
     bool operator()(Entry& e1, Entry& e2){
         double diff = e1.box.lo[0] - e2.box.lo[0];
         if(std::abs(diff)>diff_t) return diff<0;
@@ -29,7 +29,7 @@ void Incremental_Build::Build(std::vector<Entry>& entries){
 
 // Return a list of candidates whose bounding boxes intersect the ray.
 void Incremental_Build::
-Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const
+Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) const
 {
     if(!tree.size()) return;
     int i, k, size = tree.size(), size_en = entries.size();
@@ -47,7 +47,7 @@ Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) c
                 q.push(k);
         }
         else{
-            candidates.push_back(&entries[i-size_en+1]);
+            candidates.push_back(i-size_en+1);
         }
     }
 }
@@ -57,8 +57,7 @@ Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) c
 void Incremental_Build::Reorder_Entries(std::vector<Entry>& entries)
 {
     if(!entries.size()) return;
-    comp cmp;
-    std::sort(entries.begin(), entries.end(), cmp);
+    std::sort(entries.begin(), entries.end(), local_compare());
 }
 
 // Populate tree from entries.

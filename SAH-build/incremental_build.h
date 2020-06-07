@@ -11,7 +11,7 @@ class Incremental_Build: public Hierarchy
 public:
     virtual void Build(std::vector<Entry>& entries) override;
     // Return a list of candidates whose bounding boxes intersect the ray.
-    virtual void Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) 
+    virtual void Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) 
         const override;
 
 private:

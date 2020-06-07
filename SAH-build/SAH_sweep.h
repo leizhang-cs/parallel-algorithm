@@ -19,7 +19,7 @@ public:
     // Hierachy::entries;
     virtual void Build(std::vector<Entry>& entries) override;
     // candidates: pointer of entries
-    virtual void Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates)
+    virtual void Intersection_Candidates(const Ray& ray, std::vector<int>& candidates)
         const override;
 
 private:

@@ -28,7 +28,7 @@ public:
 
     virtual void Build(std::vector<Entry>& entries)=0;
     // Return a list of candidates whose bounding boxes intersect the ray.
-    virtual void Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const=0;
+    virtual void Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) const=0;
 };
 #endif
 

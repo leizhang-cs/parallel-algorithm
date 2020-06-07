@@ -3,6 +3,20 @@
 
 #include "box.h"
 #include "hierarchy.h"
+#include <algorithm>
+#include <limits>
+#include <queue>
+#include <atomic>
+
+struct Node{
+    Box box;
+    Node* lChild;
+    Node* rChild;
+    int begin;
+    int end;
+    
+    Node():lChild(nullptr),rChild(nullptr),begin(-1),end(-1){}
+};
 
 struct compare{
     compare(int dimension_input):dimension(dimension_input){}

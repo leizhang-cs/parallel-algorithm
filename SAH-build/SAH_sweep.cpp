@@ -1,20 +1,6 @@
 #include "SAH_sweep.h"
-#include <algorithm>
-#include <limits>
-#include <queue>
 #include "inline_func.cpp"
 #include "common.h"
-
-
-struct Node{
-    Box box;
-    Node* lChild;
-    Node* rChild;
-    std::vector<Entry*> entry_list;
-    
-    Node():lChild(nullptr),rChild(nullptr){}
-    Node(int n):lChild(nullptr),rChild(nullptr),entry_list(n){}
-};
 
 
 void SAH_Sweep::Build(std::vector<Entry>& entries){
@@ -25,12 +11,10 @@ void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
 {
     int n = end - begin;
     if(n<=threshold){
-        curr = new Node(n);
+        curr = new Node();
         Box b; b.Make_Empty();
-        for(int i=0; i<n; i++){
-            b = b.Union(entries[begin+i].box);
-            curr->entry_list[i] = &entries[begin+i];
-        }
+        curr->begin = begin;
+        curr->end = end;
         curr->box = b;
     }
     else{
@@ -100,7 +84,7 @@ bool SAH_Sweep::updateBestPartition(int& global_index, double& global_min, Box& 
 
 
 // candidates: pointer of entries. Level order traversal
-void SAH_Sweep::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const
+void SAH_Sweep::Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) const
 {
     //std::cout<<"candidata()"<<std::endl;
     if(!root) return;
@@ -108,16 +92,14 @@ void SAH_Sweep::Intersection_Candidates(const Ray& ray, std::vector<const Entry*
     std::queue<Node*> q;
     if(root->box.Intersection(ray)){
         q.push(root);
-        if(debug_pixel) std::cout<<"enter loop"<<std::endl;
     }
     
     while(!q.empty()){
         Node* temp = q.front(); q.pop();
-        if(debug_pixel) std::cout<<"box:"<<temp->box.Surface_Area()<<std::endl;
-        if(!temp->entry_list.empty()){
+        if(temp->begin!=-1){
             //std::cout<<"intersect: "<<std::endl;
-            for(auto en: temp->entry_list){
-                candidates.push_back(en);
+            for(int i=temp->begin; i<temp->end; i++){
+                candidates.push_back(i);
             }
         }
         if(temp->lChild && temp->lChild->box.Intersection(ray)){

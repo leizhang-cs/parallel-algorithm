@@ -192,7 +192,7 @@ int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vecto
 }
 
 // candidates: pointer of entries. Level order traversal
-void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates) const
+void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const int>& candidates) const
 {
     //std::cout<<"candidata()"<<std::endl;
     if(!root) return;
@@ -207,7 +207,7 @@ void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const Entry*>&
             Node* temp = q.front(); q.pop();
             if(temp->begin!=-1){
                 for(int i=temp->begin; i<temp->end; i++){
-                    candidates.push_back(&entries[i]);
+                    candidates.push_back(i);
                 }
             }
             if(temp->lChild && temp->lChild->box.Intersection(ray)){

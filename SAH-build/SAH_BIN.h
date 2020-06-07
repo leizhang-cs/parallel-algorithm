@@ -3,12 +3,11 @@
 
 #include "object.h"
 #include "hierarchy.h"
-#include <atomic>
+#include "common.h"
 
-struct Entry;
+struct Entry; // primitives
 
-// BVH treeNode
-struct Node;
+struct Node; // BVH treeNode
 
 class SAH_BIN: public Hierarchy
 {
@@ -16,7 +15,7 @@ public:
     SAH_BIN():buckets_num(0){}
     // threshold of treeNode, buckets number for partition
     SAH_BIN(int threshold_input, int buckets_num_input)
-        :Hierarchy(threshold_input),buckets_num(buckets_num_input),index(0)
+        :Hierarchy(threshold_input),buckets_num(buckets_num_input),node_index(-1)
     {}
 
     const int buckets_num;
@@ -24,13 +23,15 @@ public:
     
     virtual void Build(std::vector<Entry>& entries) override;
     // candidates: pointer of entries
-    virtual void Intersection_Candidates(const Ray& ray, std::vector<const Entry*>& candidates)
+    virtual void Intersection_Candidates(const Ray& ray, std::vector<int>& candidates)
         const override;
 
 private:
     Node* root;
-    std::atomic_int index;
-    
+    std::atomic_int node_index;
+    bool sorting_method = false; // sorting or partition
+    bool safe_mode = false; // when failing to find best partition or dimension
+
     std::vector<Node> nodes; // nodes of BVH, nodes[0] is the root
 
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
@@ -46,22 +47,12 @@ private:
     void Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end);
 };
 
-struct Node{
-    Box box;
-    Node* lChild;
-    Node* rChild;
-    int begin;
-    int end;
-    
-    Node():lChild(nullptr),rChild(nullptr),begin(-1),end(-1){}
-};
-
 inline
 void SAH_BIN::Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end){
-    curr->box.Make_Empty();
     curr->begin = begin;
     curr->end = end;
-    for(int i=begin; i<end; i++){
+    curr->box = entries[begin].box;
+    for(int i=begin+1; i<end; i++){
         curr->box = curr->box.Union(entries[i].box);
     }
 }

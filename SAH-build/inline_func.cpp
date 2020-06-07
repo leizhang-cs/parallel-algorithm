@@ -76,31 +76,3 @@ bool Box::Intersection(const Ray& ray) const
     }
     return true;
 }
-
-/*
-// Return a list of candidates (indices into the entries list) whose
-// bounding boxes intersect the ray.
-inline
-void Hierarchy::Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) const
-{
-    if(!tree.size()) return;
-    int i, k, size = tree.size(), size_top = entries.size()-1;
-    std::queue<int> q;
-    if(tree[0].Intersection(ray)) q.push(0);
-    //if(debug_pixel && q.empty()) std::cout<<"m"<<std::endl;
-    while(!q.empty()){
-        i = q.front();
-        q.pop();
-        k = 2 * i + 1;
-        if(k<size){
-            if(tree[k].Intersection(ray))
-                q.push(k);
-            k++;
-            if(k<size && tree[k].Intersection(ray))
-                q.push(k);
-        }
-        else{
-            candidates.push_back(i-size_top);
-        }
-    }
-}*/

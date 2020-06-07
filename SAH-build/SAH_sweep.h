@@ -3,6 +3,7 @@
 
 #include "object.h"
 #include "hierarchy.h"
+#include "common.h"
 
 struct Entry;
 
@@ -24,11 +25,23 @@ public:
 
 private:
     Node* root; // root of BVH
+    std::atomic_int node_index;
+    std::vector<Node> nodes; // nodes of BVH, nodes[0] is the root
     
     void Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
     bool updateBestPartition(int& global_index, double& global_min, Box& currBox,
         std::vector<Entry>& entries, int begin, int end);
+    void Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end);
 };
 
+inline
+void SAH_Sweep::Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end){
+    curr->begin = begin;
+    curr->end = end;
+    curr->box = entries[begin].box;
+    for(int i=begin+1; i<end; i++){
+        curr->box = curr->box.Union(entries[i].box);
+    }
+}
 
 #endif

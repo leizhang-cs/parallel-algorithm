@@ -1,6 +1,5 @@
 #include "SAH_BIN.h"
 #include "inline_func.cpp"
-#include "common.h"
 #include "../samplesort/samplesort.h"
 #include <algorithm>
 #include <limits>
@@ -12,7 +11,7 @@ void SAH_BIN::Build(std::vector<Entry>& entries){
     //std::cout<<entries.size()<<std::endl;
     std::vector<Node> _nodes(entries.size()*2);
     std::swap(_nodes, nodes);
-    root = &nodes[index++];
+    root = &nodes[++node_index];
     BIN_Build(root, entries, 0, entries.size());
 }
 
@@ -20,7 +19,6 @@ void SAH_BIN::Build(std::vector<Entry>& entries){
 void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end)
 {
     // when failing to find best partition or dimension
-    bool safe_mode = true;
     if(end-begin<=threshold){
         Make_Leaf(curr, entries, begin, end);
     }
@@ -41,11 +39,11 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         for(auto& b: buckets) b.Make_Empty();
 
         // compare two Entry along a-dimension
-        std::sort(entries.begin()+begin, entries.begin()+end, 
+        /*std::sort(entries.begin()+begin, entries.begin()+end, 
             [dimension](const auto& e1, const auto& e2){
                 return (e1.box.lo+e1.box.hi)[dimension]<(e2.box.lo+e2.box.hi)[dimension];
             }
-        );
+        );*/
 
         // samplesort
         // compare comp(dimension);
@@ -54,10 +52,10 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         // ssort.sort(arr, entries);
         
         // bucketing
-        bucketing(dimension, largest_dist, lo_dist, buckets, BucketToEntry, entries, begin, end);
+        //bucketing(dimension, largest_dist, lo_dist, buckets, BucketToEntry, entries, begin, end);
 
         // Method 2: bucketing without comparison sort
-        //bucketing(entries, begin, end, lo_dist, lo_dist+largest_dist, largest_dist/buckets_num, \
+        bucketing(entries, begin, end, lo_dist, lo_dist+largest_dist, largest_dist/buckets_num, \
 	         dimension, buckets, BucketToEntry, 0);
 
         int en_index = findBestPartition(buckets, BucketToEntry, curr->box);
@@ -67,8 +65,8 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
             else{ std::cout<<"partition failed"<<std::endl; exit(EXIT_FAILURE); }
         }
         //std::cout<<"partition:"<<begin<<" "<<en_index<<" "<<end<<std::endl;
-        curr->lChild = &nodes[index++];
-        curr->rChild = &nodes[index++];
+        curr->lChild = &nodes[++node_index];
+        curr->rChild = &nodes[++node_index];
         BIN_Build(curr->lChild, entries, begin, en_index);
         BIN_Build(curr->rChild, entries, en_index, end);
     }
@@ -192,7 +190,7 @@ int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vecto
 }
 
 // candidates: pointer of entries. Level order traversal
-void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const int>& candidates) const
+void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<int>& candidates) const
 {
     //std::cout<<"candidata()"<<std::endl;
     if(!root) return;
@@ -203,7 +201,6 @@ void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const int>& ca
     }
     
     while(!q.empty()){
-        for(int k=q.size(); k>0; k--){
             Node* temp = q.front(); q.pop();
             if(temp->begin!=-1){
                 for(int i=temp->begin; i<temp->end; i++){
@@ -216,6 +213,6 @@ void SAH_BIN::Intersection_Candidates(const Ray& ray, std::vector<const int>& ca
             if(temp->rChild && temp->rChild->box.Intersection(ray)){
                 q.push(temp->rChild);
             }
-        }
     }
+    
 }

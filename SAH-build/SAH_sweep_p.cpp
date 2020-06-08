@@ -1,8 +1,13 @@
 #include "SAH_sweep.h"
 #include "inline_func.cpp"
+#include "../samplesort/samplesort.h"
+#include <cilk/cilk.h>
+#include <cilk/cilk_api.h>
 
 
 void SAH_Sweep::Build(std::vector<Entry>& entries){
+    nodes.resize(entries.size()*2);
+    root = &nodes[++node_index];
     Sweep_Build(root, entries, 0, entries.size());
 }
 
@@ -10,26 +15,23 @@ void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
 {
     int n = end - begin;
     if(n<=threshold){
-        curr = new Node();
-        Box b; b.Make_Empty();
-        curr->begin = begin;
-        curr->end = end;
-        curr->box = b;
+        Make_Leaf(curr, entries, begin, end);
     }
     else{
-        curr = new Node();
         // bestCut index and axis
         int global_index = -1, axis = -1;
         double global_min = std::numeric_limits<double>::infinity();
         Box boxL, boxR;
+        // find best partition on three dimensions
+        std::vector<Entry> dummy_entries(entries.begin()+begin, entries.begin()+end);
         for(int i=0; i<3; i++){
-            //std::cout<<"axis:"<<i<<std::endl;
-            // compare along i-axis
-            // std::sort(entries.begin()+begin, entries.begin()+end, [i](auto& e1, auto& e2){
-            //     vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
-            //     return c1[i]<c2[i];
-            // });
-            std::sort(entries.begin()+begin, entries.begin()+end, compare(i));
+            if(end-begin<1e4){ // stl::sort
+                std::sort(entries.begin()+begin, entries.begin()+end, compare(i));
+            }
+            else{ //samplesort
+                Samplesort<Entry> ssort(compare(i), begin);
+                ssort.sort(dummy_entries, entries);
+            }
             // search and update bestCut, current node box
             if(updateBestPartition(global_index, global_min, curr->box, entries, 
                 begin, end)){
@@ -38,17 +40,22 @@ void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
         }
         if(axis==-1){ std::cout<<"fail update"<<std::endl; return; }
         else if(axis!=2){
-            // std::sort(entries.begin()+begin, entries.begin()+end, [axis](auto& e1, auto& e2){
-            //     vec3 c1 = (e1.box.lo+e1.box.hi)/2, c2 = (e2.box.lo+e2.box.hi)/2;
-            //     return c1[axis]<c2[axis];
-            // });
-            std::sort(entries.begin()+begin, entries.begin()+end, compare(axis));
+            if(end-begin<1e4){ // stl::sort
+                std::sort(entries.begin()+begin, entries.begin()+end, compare(axis));
+            }
+            else{ //samplesort
+                Samplesort<Entry> ssort(compare(axis), begin);
+                ssort.sort(dummy_entries, entries);
+            }
         }
 
         //std::cout<<"split:"<<global_index<<std::endl;
-        
+        curr->lChild = &nodes[++node_index];
+        curr->rChild = &nodes[++node_index];
+        cilk_spawn
         Sweep_Build(curr->lChild, entries, begin, begin+global_index);
         Sweep_Build(curr->rChild, entries, begin+global_index, end);
+        cilk_sync;
     }
 }
 
@@ -95,8 +102,7 @@ void SAH_Sweep::Intersection_Candidates(const Ray& ray, std::vector<int>& candid
     
     while(!q.empty()){
         Node* temp = q.front(); q.pop();
-        if(temp->begin!=-1){
-            //std::cout<<"intersect: "<<std::endl;
+        if(temp->begin>=0){
             for(int i=temp->begin; i<temp->end; i++){
                 candidates.push_back(i);
             }

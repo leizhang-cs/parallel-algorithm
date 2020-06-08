@@ -2,8 +2,8 @@ size 640 480
 color white 1 1 1
 color black 0 0 0
 phong_shader white_shader white white white 50
-mesh - f000.obj white_shader
-point_light 1.8 1.8 4 white 100
+mesh - scene/f000.obj white_shader
+point_light 1.8 1.8 4 white 130
 ambient_light white 0.3
 enable_shadows 0
 #bottomup 1

@@ -2,7 +2,7 @@ size 640 480
 color white 1 1 1
 color black 0 0 0
 phong_shader white_shader white white white 50
-mesh_pos - conference.obj -100 -100 100 white_shader
+mesh_pos - scene/conference.obj -100 -100 100 white_shader
 point_light 200 400 0 white 1000000
 point_light 0 300 100 white 500000
 #point_light 100 300 0 white 1000000

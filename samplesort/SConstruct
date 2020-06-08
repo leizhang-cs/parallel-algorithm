@@ -9,6 +9,6 @@ env.Append(LINKFLAGS=["-L/usr/local/lib"])
 
 env.Program("ssort",
             [
-                "main.cpp","samplesort.cpp"
+                "main.cpp"#,"samplesort.cpp"
             ])
 

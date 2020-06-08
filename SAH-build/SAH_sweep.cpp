@@ -102,8 +102,7 @@ void SAH_Sweep::Intersection_Candidates(const Ray& ray, std::vector<int>& candid
     
     while(!q.empty()){
         Node* temp = q.front(); q.pop();
-        if(temp->begin!=-1){
-            //std::cout<<"intersect: "<<std::endl;
+        if(temp->begin>=0){
             for(int i=temp->begin; i<temp->end; i++){
                 candidates.push_back(i);
             }

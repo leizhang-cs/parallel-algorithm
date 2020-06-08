@@ -1,5 +1,3 @@
-using namespace std;
-
 void scan(int* In, int* Out, int* B, int* C, int n) {
         if (n==0) return;
         if (n == 1) {
@@ -18,6 +16,7 @@ void scan(int* In, int* Out, int* B, int* C, int n) {
         }
 }
 
+inline
 void scan(int* In, int* Out, int n){
         if(n==0) return;
         if(n==1){

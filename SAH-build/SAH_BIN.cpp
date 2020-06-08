@@ -32,7 +32,7 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         findLongestDim(dimension, largest_dist, lo_dist, entries, begin ,end);
         if(dimension==-1){
             if(safe_mode){ dimension=0; }
-            else{ std::cout<<"find dim failed"<<std::endl; exit(EXIT_FAILURE); }
+            else{ std::cout<<"finding dim failed"<<std::endl; exit(EXIT_FAILURE); }
         }
 
         // buckets: bounding boxes
@@ -64,7 +64,7 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         int en_index = findBestPartition(buckets, BucketToEntry, curr->box);
         if(en_index==-1){ // when failing to find partition, make leaf or exit(1).
             if(safe_mode){ Make_Leaf(curr,entries,begin,end); return; }
-            else{ std::cout<<"partition failed"<<std::endl; exit(EXIT_FAILURE); }
+            else{ std::cout<<"partitioning failed"<<std::endl; exit(EXIT_FAILURE); }
         }
         //std::cout<<"partition:"<<begin<<" "<<en_index<<" "<<end<<std::endl;
         curr->lChild = &nodes[++node_index];

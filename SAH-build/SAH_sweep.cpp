@@ -1,7 +1,6 @@
 #include "SAH_sweep.h"
 #include "inline_func.cpp"
 #include "../samplesort/samplesort.h"
-#include "common.h"
 #include <cilk/cilk.h>
 #include <cilk/cilk_api.h>
 
@@ -24,14 +23,14 @@ void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
         double global_min = std::numeric_limits<double>::infinity();
         Box boxL, boxR;
         // find best partition on three dimensions
-        std::vector<Entry> arr(entries.begin()+begin, entries.begin()+end);
+        std::vector<Entry> dummy_entries(entries.begin()+begin, entries.begin()+end);
         for(int i=0; i<3; i++){
-            if(end-begin<1e5){ // stl::sort
+            if(end-begin<1e4){ // stl::sort
                 std::sort(entries.begin()+begin, entries.begin()+end, compare(i));
             }
             else{ //samplesort
                 Samplesort<Entry> ssort(compare(i), begin);
-                ssort.sort(arr, entries);
+                ssort.sort(dummy_entries, entries);
             }
             // search and update bestCut, current node box
             if(updateBestPartition(global_index, global_min, curr->box, entries, 
@@ -46,7 +45,7 @@ void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
             }
             else{ //samplesort
                 Samplesort<Entry> ssort(compare(axis), begin);
-                ssort.sort(arr, entries);
+                ssort.sort(dummy_entries, entries);
             }
         }
 

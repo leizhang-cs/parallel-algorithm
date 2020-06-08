@@ -8,9 +8,7 @@
 void SAH_BIN::Build(std::vector<Entry>& entries){
     int n = entries.size();
     constrains.push_back(std::max(n/8, static_cast<int>(log(n)*sqrt(n))));
-    constrains.push_back(std::min(static_cast<int>(constrains[0]/2), 
-        static_cast<int>(log(n)*sqrt(n))));
-    //std::cout<<n<<"  "<<constrains[0]<<" "<<constrains[1]<<"\n";
+    constrains.push_back(std::min(constrains[0]/8, static_cast<int>(log(n)*sqrt(n))));
     nodes.resize(2*n-1);
     root = &nodes[++node_index];
     BIN_Build(root, entries, 0, n);
@@ -20,15 +18,13 @@ void SAH_BIN::Build(std::vector<Entry>& entries){
 // binned build
 void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end)
 {
-    if(end-begin<buckets_num){
-        for(int i=0; i<end-begin; i+=threshold+1){
-            Make_Leaf(curr, entries, begin+i, std::min(begin+i,end));
-        }
+    if(end-begin<=threshold){
+        Make_Leaf(curr, entries, begin, end);
     }
     else{
         int local_bucket_num = buckets_num; //end-begin<constrains[0]? buckets_num/2: buckets_num;
         if(begin-end<constrains[0]){
-            local_bucket_num = end-begin<constrains[1]? buckets_num/8: buckets_num/2;
+            local_bucket_num = end-begin<constrains[1]? 4: std::max(buckets_num/2,4);
         }
         // find longest dimension
         int dimension = -1;

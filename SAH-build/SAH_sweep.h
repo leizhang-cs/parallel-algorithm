@@ -14,7 +14,7 @@ class SAH_Sweep: public Hierarchy
 {
 public:
     SAH_Sweep(){}
-    SAH_Sweep(int threshold_input): Hierarchy(threshold_input){}
+    SAH_Sweep(int threshold_input): Hierarchy(threshold_input),node_index(-1){}
 
     // Hierarchy::threshold;
     // Hierachy::entries;

@@ -5,6 +5,7 @@
 #include "inline_func.cpp"
 #include "get_time.h"
 
+
 extern bool disable_hierarchy;
 
 Render_World::Render_World()

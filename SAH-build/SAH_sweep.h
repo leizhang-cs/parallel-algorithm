@@ -29,6 +29,8 @@ private:
     std::vector<Node> nodes; // nodes of BVH, nodes[0] is the root
     
     void Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
+    void Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end,
+        int node_begin, int node_end);
     bool updateBestPartition(int& global_index, double& global_min, Box& currBox,
         std::vector<Entry>& entries, int begin, int end);
     void Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end);

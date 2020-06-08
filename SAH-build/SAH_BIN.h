@@ -35,6 +35,8 @@ private:
     bool safe_mode = true; // when failing to find best partition or dimension
 
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
+    void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end,
+        int node_begin, int node_end);
     void findLongestDim(int& dimension, double& largest_dist, double& lo_dist, 
         const std::vector<Entry>& entries, int begin, int end);
     void bucketing(std::vector<Entry>& entries, int begin, int end, double left, double right, 

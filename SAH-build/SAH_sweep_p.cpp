@@ -6,12 +6,13 @@
 
 
 void SAH_Sweep::Build(std::vector<Entry>& entries){
-    nodes.resize(entries.size()*2);
-    root = &nodes[++node_index];
-    Sweep_Build(root, entries, 0, entries.size());
+    nodes.resize(entries.size()*2-1);
+    root = &nodes[0];
+    Sweep_Build(root, entries, 0, entries.size(), 0 ,nodes.size());
 }
 
-void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end)
+void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end,
+    int node_begin, int node_end)
 {
     int n = end - begin;
     if(n<=threshold){
@@ -49,12 +50,12 @@ void SAH_Sweep::Sweep_Build(Node*& curr, std::vector<Entry>& entries, int begin,
             }
         }
 
-        //std::cout<<"split:"<<global_index<<std::endl;
-        curr->lChild = &nodes[++node_index];
-        curr->rChild = &nodes[++node_index];
+        int lNodes = (global_index)*2-1;
+        curr->lChild = &nodes[node_begin+1];
+        curr->rChild = &nodes[node_begin+1+lNodes];
         cilk_spawn
-        Sweep_Build(curr->lChild, entries, begin, begin+global_index);
-        Sweep_Build(curr->rChild, entries, begin+global_index, end);
+        Sweep_Build(curr->lChild, entries, begin, begin+global_index, node_begin+1, node_begin+1+lNodes);
+        Sweep_Build(curr->rChild, entries, begin+global_index, end, node_begin+1+lNodes, node_end);
         cilk_sync;
     }
 }

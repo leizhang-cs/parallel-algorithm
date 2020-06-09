@@ -7,8 +7,8 @@
 
 void SAH_BIN::Build(std::vector<Entry>& entries){
     int n = entries.size();
-    constrains.push_back(std::max(n/8, static_cast<int>(log(n)*sqrt(n))));
-    constrains.push_back(std::min(constrains[0]/8, static_cast<int>(log(n)*sqrt(n))));
+    coarsening.push_back(std::max(n/8, static_cast<int>(log(n)*sqrt(n))));
+    coarsening.push_back(std::min(coarsening[0]/8, static_cast<int>(log(n)*sqrt(n))));
     nodes.resize(2*n-1);
     root = &nodes[0];
     BIN_Build(root, entries, 0, n, 0, nodes.size());
@@ -25,8 +25,8 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
     }
     else{
         int local_bucket_num = buckets_num;
-        if(begin-end<constrains[0]){
-            local_bucket_num = end-begin<constrains[1]? 4: std::max(buckets_num/2,4);
+        if(begin-end<coarsening[0]){
+            local_bucket_num = end-begin<coarsening[1]? 4: std::max(buckets_num/2,4);
         }
         // find longest dimension
         int dimension = -1;
@@ -44,7 +44,7 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         for(size_t i=0; i<buckets.size(); i++) buckets[i].Make_Empty();
 
         // Method 1: sort and bucket 
-        if(sorting_method){
+        if(sorting_scheme){
             if(end-begin<1e4){ // stl::sort
                 std::sort(entries.begin()+begin, entries.begin()+end, compare(dimension));
             }
@@ -71,10 +71,16 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         int lNodes = (en_index-begin)*2-1;
         curr->lChild = &nodes[node_begin+1];
         curr->rChild = &nodes[node_begin+1+lNodes];
-        cilk_spawn
-        BIN_Build(curr->lChild, entries, begin, en_index, node_begin+1, node_begin+1+lNodes);
-        BIN_Build(curr->rChild, entries, en_index, end, node_begin+1+lNodes, node_end);
-        cilk_sync;
+        if(end-begin<coarsening[1]){
+            BIN_Build(curr->lChild, entries, begin, en_index, node_begin+1, node_begin+1+lNodes);
+            BIN_Build(curr->rChild, entries, en_index, end, node_begin+1+lNodes, node_end);
+        }
+        else{
+            cilk_spawn
+            BIN_Build(curr->lChild, entries, begin, en_index, node_begin+1, node_begin+1+lNodes);
+            BIN_Build(curr->rChild, entries, en_index, end, node_begin+1+lNodes, node_end);
+            cilk_sync;
+        }
     }
 }
 
@@ -122,12 +128,20 @@ void SAH_BIN::bucketing(std::vector<Entry>& entries, int begin, int end, double 
         while(i<j && entries[j].box.Center()[dimension]>=split) j--;
         std::swap(entries[i], entries[j]);
     }
-    cilk_spawn
-    bucketing(entries, begin, j, left, split, split_th, dimension, buckets, 
-        BucketToEntry, 2*nth_bucket);
-    bucketing(entries, j, end, split, right, split_th, dimension, buckets, 
-        BucketToEntry, 2*nth_bucket+1);
-    cilk_sync;
+    if(end-begin<coarsening[1]){
+        bucketing(entries, begin, j, left, split, split_th, dimension, buckets, 
+            BucketToEntry, 2*nth_bucket);
+        bucketing(entries, j, end, split, right, split_th, dimension, buckets, 
+            BucketToEntry, 2*nth_bucket+1);
+    }
+    else{
+        cilk_spawn
+        bucketing(entries, begin, j, left, split, split_th, dimension, buckets, 
+            BucketToEntry, 2*nth_bucket);
+        bucketing(entries, j, end, split, right, split_th, dimension, buckets, 
+            BucketToEntry, 2*nth_bucket+1);
+        cilk_sync;
+    }
 }
 
 void SAH_BIN::bucketing(int dimension, double largest_dist, double lo_dist, std::vector<Box>& buckets,

@@ -30,8 +30,8 @@ private:
     Node* root;
     std::atomic_int node_index;
     std::vector<Node> nodes; // nodes of BVH, nodes[0] is the root
-    std::vector<int> constrains;
-    bool sorting_method = false; // sorting or partition
+    std::vector<int> coarsening;
+    bool sorting_scheme = false; // sorting or partition
     bool safe_mode = true; // when failing to find best partition or dimension
 
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);

@@ -8,8 +8,8 @@
 
 void SAH_BIN::Build(std::vector<Entry>& entries){
     int n = entries.size();
-    constrains.push_back(std::max(n/8, static_cast<int>(log(n)*sqrt(n))));
-    constrains.push_back(std::min(constrains[0]/8, static_cast<int>(log(n)*sqrt(n))));
+    coarsening.push_back(std::max(n/8, static_cast<int>(log(n)*sqrt(n))));
+    coarsening.push_back(std::min(coarsening[0]/8, static_cast<int>(log(n)*sqrt(n))));
     nodes.resize(2*n-1);
     root = &nodes[++node_index];
     BIN_Build(root, entries, 0, n);
@@ -25,8 +25,8 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
     }
     else{
         int local_bucket_num = buckets_num;
-        if(begin-end<constrains[0]){
-            local_bucket_num = end-begin<constrains[1]? 4: std::max(buckets_num/2,4);
+        if(begin-end<coarsening[0]){
+            local_bucket_num = end-begin<coarsening[1]? 4: std::max(buckets_num/2,4);
         }
         // find longest dimension
         int dimension = -1;

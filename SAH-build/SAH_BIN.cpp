@@ -9,17 +9,14 @@ void SAH_BIN::Build(std::vector<Entry>& entries){
     int n = entries.size();
     coarsening.push_back(std::max(n/8, static_cast<int>(log(n)*sqrt(n))));
     coarsening.push_back(std::min(coarsening[0]/8, static_cast<int>(log(n)*sqrt(n))));
-    nodes.resize(2*n-1);
+    nodes.resize(2*n);
     root = &nodes[0];
-    BIN_Build(root, entries, 0, n, 0, nodes.size());
+    BIN_Build(root, entries, 0, n, 1);
 }
 
 // binned build
-void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end, 
-    int node_begin, int node_end)
+void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end, int nth_node)
 {
-    //curr = &nodes[node_begin];
-    //curr = new Node();
     if(end-begin<=threshold){
         Make_Leaf(curr, entries, begin, end);
     }
@@ -29,13 +26,9 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
             local_bucket_num = end-begin<coarsening[1]? 4: std::max(buckets_num/2,4);
         }
         // find longest dimension
-        int dimension = -1;
+        int dimension = 0;
         double largest_dist = 0, lo_dist;
         findLongestDim(dimension, largest_dist, lo_dist, entries, begin ,end);
-        if(dimension==-1){
-            if(safe_mode){ dimension=0; }
-            else{ std::cout<<"finding dim failed"<<std::endl; exit(EXIT_FAILURE); }
-        }
 
         // buckets: bounding boxes
         std::vector<Box> buckets(local_bucket_num);
@@ -63,22 +56,20 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         }
 	
         // find best partition, right half entries' index
-        int en_index = findBestPartition(buckets, BucketToEntry, curr->box);
-        if(en_index==-1){ // when failing to find partition, make leaf or exit(1).
-            if(safe_mode){ Make_Leaf(curr,entries,begin,end); return; }
-            else{ std::cout<<"partitioning failed"<<std::endl; exit(EXIT_FAILURE); }
-        }
+        int en_index = (begin+end)/2;
+        en_index = findBestPartition(buckets, BucketToEntry, curr->box);
+        
         int lNodes = (en_index-begin)*2-1;
-        curr->lChild = &nodes[node_begin+1];
-        curr->rChild = &nodes[node_begin+1+lNodes];
+        curr->lChild = &nodes[nth_node];
+        curr->rChild = &nodes[nth_node+lNodes];
         if(end-begin<coarsening[1]){
-            BIN_Build(curr->lChild, entries, begin, en_index, node_begin+1, node_begin+1+lNodes);
-            BIN_Build(curr->rChild, entries, en_index, end, node_begin+1+lNodes, node_end);
+            BIN_Build(curr->lChild, entries, begin, en_index, nth_node+1);
+            BIN_Build(curr->rChild, entries, en_index, end, nth_node+1+lNodes);
         }
         else{
             cilk_spawn
-            BIN_Build(curr->lChild, entries, begin, en_index, node_begin+1, node_begin+1+lNodes);
-            BIN_Build(curr->rChild, entries, en_index, end, node_begin+1+lNodes, node_end);
+            BIN_Build(curr->lChild, entries, begin, en_index, nth_node+1);
+            BIN_Build(curr->rChild, entries, en_index, end, nth_node+1+lNodes);
             cilk_sync;
         }
     }

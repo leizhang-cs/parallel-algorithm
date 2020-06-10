@@ -35,13 +35,13 @@ private:
 
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
     void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end, int nth_node);
-    void findLongestDim(int& dimension, double& largest_dist, double& lo_dist, 
+    bool findLongestDim(int& dimension, double& largest_dist, double& lo_dist, 
         const std::vector<Entry>& entries, int begin, int end);
     void bucketing(std::vector<Entry>& entries, int begin, int end, double left, double right, 
         double split_th, int dimension, std::vector<Box>& buckets, std::vector<int>& BucketToEntry,
         int nth_bucket);
-    void bucketing(int dimension, double largest_dist, double lo_dist, std::vector<Box>& buckets, 
-        std::vector<int>& BucketToEntry, const std::vector<Entry>& entries, int begin, int end);
+    void bucketing(const std::vector<Entry>& entries, int begin, int end, int dimension,
+        double largest_dist, double lo_dist, std::vector<Box>& buckets, std::vector<int>& BucketToEntry);
     int findBestPartition(const std::vector<Box>& buckets, const std::vector<int>& BucketToEntry, 
         Box& currBox);
     void Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end);

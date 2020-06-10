@@ -7,8 +7,8 @@
 class Box
 {
 public:
-    // lowermost and uppermost corners of bounding box
-    vec3 lo,hi;
+    // lowermost corner, uppermost corner, center of bounding boxes
+    vec3 lo,hi,center;
 
     // Return whether the ray intersects this box.
     bool Intersection(const Ray& ray) const;

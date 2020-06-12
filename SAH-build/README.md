@@ -1,4 +1,4 @@
-Implementation of 
+Implementation of parallel
   * SAH sweep build
   * SAH-based binned build
 

@@ -5,18 +5,44 @@
 #include <cilk/cilk_api.h>
 
 
+// 1 threads 0.106, 0.33
+// 4 threads 0.061, 0.33
+
+// topnodes 1 threads 4 top 0.086, 0.34
+// topnodes 4  0.045, 0.34
+//          8  0.043, 0.36
+//          16 0.041, 0.37
+//          32 0.039, 0.39
+//          64 0.037, 0.41
 void SAH_BIN::Build(std::vector<Entry>& entries){
     int n = entries.size();
     cilk_for(int i=0; i<n; i++) entries[i].box.center = entries[i].box.Center();
     coarsening.push_back(std::max(n/8, static_cast<int>(log(n)*sqrt(n))));
     coarsening.push_back(std::min(coarsening[0]/8, static_cast<int>(log(n)*sqrt(n))));
-    nodes.resize(2*n);
-    root = &nodes[0];
-    BIN_Build(root, entries, 0, n, 1);
+    nodes.resize(2*n-1);
+
+    int k = 4;
+    topNodes.resize(2*k-1);
+
+    int d = (n-1) / k + 1;
+    cilk_for(int i=0; i<n; i+=d) {
+        int end = std::min(n, i+d);
+        BIN_Build(topNodes[i/d+k-1], entries, i, end, 2*i+1);
+    }
+    
+    for(int i=k-2; i>=0; i--){
+        topNodes[i].box = topNodes[2*i+2].box.Union(topNodes[2*i+1].box);
+        topNodes[i].lChild = &topNodes[2*i+2];
+        topNodes[i].rChild = &topNodes[2*i+1];
+    }
+    root = &topNodes[0];
+
+    // root = &nodes[0];
+    // BIN_Build(nodes[0], entries, 0, n, 1);
 }
 
 // binned build
-void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end, int nth_node)
+void SAH_BIN::BIN_Build(Node& curr, std::vector<Entry>& entries, int begin, int end, int nth_node)
 {
     if(end-begin<=threshold){
         Make_Leaf(curr, entries, begin, end);
@@ -24,11 +50,11 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
     else{
         int local_bucket_num = buckets_num;
         if(begin-end<coarsening[0]){
-            local_bucket_num = end-begin<coarsening[1]? 4: std::max(buckets_num/2,4);
+           local_bucket_num = end-begin<coarsening[1]? 4: std::max(buckets_num/2,4);
         }
         // find longest dimension
         int dimension = 0;
-        double largest_dist = -std::numeric_limits<double>::infinity(), lo_dist;
+        double largest_dist = -std::numeric_limits<double>::infinity(), lo_dist = 0;
         findLongestDim(dimension, largest_dist, lo_dist, entries, begin ,end);
 
         // buckets: bounding boxes
@@ -57,20 +83,19 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
         }
 	
         // find best partition, right half entries' index
-        int en_index = (begin+end)/2;
-        en_index = findBestPartition(buckets, BucketToEntry, curr->box);
+        int en_index = findBestPartition(buckets, BucketToEntry, curr.box);
         
         int lNodes = (en_index-begin)*2-1;
-        curr->lChild = &nodes[nth_node];
-        curr->rChild = &nodes[nth_node+lNodes];
+        curr.lChild = &nodes[nth_node];
+        curr.rChild = &nodes[nth_node+lNodes];
         if(end-begin<coarsening[1]){
-            BIN_Build(curr->lChild, entries, begin, en_index, nth_node+1);
-            BIN_Build(curr->rChild, entries, en_index, end, nth_node+1+lNodes);
+            BIN_Build(*curr.lChild, entries, begin, en_index, nth_node+1);
+            BIN_Build(*curr.rChild, entries, en_index, end, nth_node+1+lNodes);
         }
         else{
             cilk_spawn
-            BIN_Build(curr->lChild, entries, begin, en_index, nth_node+1);
-            BIN_Build(curr->rChild, entries, en_index, end, nth_node+1+lNodes);
+            BIN_Build(*curr.lChild, entries, begin, en_index, nth_node+1);
+            BIN_Build(*curr.rChild, entries, en_index, end, nth_node+1+lNodes);
             cilk_sync;
         }
     }
@@ -78,7 +103,7 @@ void SAH_BIN::BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int
 
 
 bool SAH_BIN::findLongestDim(int& dimension, double& largest_dist, double& lo_dist,
-    const std::vector<Entry>& entries, int begin, int end)//begin, end
+    const std::vector<Entry>& entries, int begin, int end) //begin, end
 {
     vec3 min_d, max_d;
     min_d.fill(std::numeric_limits<double>::infinity());
@@ -106,8 +131,7 @@ bool SAH_BIN::findLongestDim(int& dimension, double& largest_dist, double& lo_di
 }
 
 void SAH_BIN::bucketing(std::vector<Entry>& entries, int begin, int end, double left, double right, 
-    double split_th, int dimension, std::vector<Box>& buckets, std::vector<int>& BucketToEntry,
-    int nth_bucket)
+    double split_th, int dimension, std::vector<Box>& buckets, std::vector<int>& BucketToEntry, int nth_bucket)
 {
     if(right-left<=split_th*1.5){ // avoid floating point error
         BucketToEntry[nth_bucket] = begin;
@@ -172,8 +196,7 @@ void SAH_BIN::bucketing(const std::vector<Entry>& entries, int begin, int end, i
 
 
 // return entries index for the right half of partition
-int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vector<int>& BucketToEntry, 
-    Box& currBox)
+int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vector<int>& BucketToEntry, Box& currBox)
 {
     int en_index = -1; // entry_index
     int n = buckets.size(); // buckets.size() boxes
@@ -190,6 +213,7 @@ int SAH_BIN::findBestPartition(const std::vector<Box>& buckets, const std::vecto
         if(cost<min_cost){
             min_cost = cost;
             en_index = BucketToEntry[i+1];
+            //std::cout<<"i:"<<i<<std::endl;
             currBox = sweepL.Union(sweepR[i+1]);
         }
         sweepL = sweepL.Union(buckets[i+1]);

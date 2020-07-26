@@ -30,11 +30,11 @@ private:
     Node* root;
     std::atomic_int node_index;
     std::vector<Node> nodes; // nodes of BVH, nodes[0] is the root
+    std::vector<Node> topNodes;
     std::vector<int> coarsening;
     bool sorting_scheme = false; // sorting or partition
 
-    void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end);
-    void BIN_Build(Node*& curr, std::vector<Entry>& entries, int begin, int end, int nth_node);
+    void BIN_Build(Node& curr, std::vector<Entry>& entries, int begin, int end, int nth_node);
     bool findLongestDim(int& dimension, double& largest_dist, double& lo_dist, 
         const std::vector<Entry>& entries, int begin, int end);
     void bucketing(std::vector<Entry>& entries, int begin, int end, double left, double right, 
@@ -44,16 +44,16 @@ private:
         double largest_dist, double lo_dist, std::vector<Box>& buckets, std::vector<int>& BucketToEntry);
     int findBestPartition(const std::vector<Box>& buckets, const std::vector<int>& BucketToEntry, 
         Box& currBox);
-    void Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end);
+    void Make_Leaf(Node& curr, std::vector<Entry>& entries, int begin, int end);
 };
 
 inline
-void SAH_BIN::Make_Leaf(Node*& curr, std::vector<Entry>& entries, int begin, int end){
-    curr->begin = begin;
-    curr->end = end;
-    curr->box = entries[begin].box;
+void SAH_BIN::Make_Leaf(Node& curr, std::vector<Entry>& entries, int begin, int end){
+    curr.begin = begin;
+    curr.end = end;
+    curr.box = entries[begin].box;
     for(int i=begin+1; i<end; i++){
-        curr->box = curr->box.Union(entries[i].box);
+        curr.box = curr.box.Union(entries[i].box);
     }
 }
 
